@@ -37,12 +37,20 @@ import { RiskBadge } from "@/components/shared/data/RiskBadge";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { CardContainer } from "@/components/shared/data/CardContainer";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
+import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
 
 const OperatorProfile = () => {
   const params = useParams();
   const operatorId = params?.operator_id as string;
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<{ name: string; benefits: string }>({
+    name: "",
+    benefits: "",
+  });
 
   // Fetch all data
   const { data: operatorData, isLoading: loadingOperator } =
@@ -61,6 +69,11 @@ const OperatorProfile = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleFeatureClick = (name: string, benefits: string) => {
+    setSelectedFeature({ name, benefits });
+    setModalOpen(true);
   };
 
   if (loadingOperator) {
@@ -191,9 +204,33 @@ const OperatorProfile = () => {
           </div>
 
           <div className="flex gap-2 ">
-            <Button size="sm">Compare</Button>
-            <Button size="sm">Watch</Button>
-            <Button size="sm">Delegate</Button>
+            <Button 
+              size="sm" 
+              onClick={() => handleFeatureClick(
+                "Compare Operators", 
+                "Compare performance metrics, fees, and risk scores across multiple operators side-by-side to make informed delegation decisions."
+              )}
+            >
+              Compare
+            </Button>
+            <Button 
+              size="sm" 
+              onClick={() => handleFeatureClick(
+                "Watchlist", 
+                "Track your favorite operators and receive real-time alerts on performance changes, slashing events, and fee updates."
+              )}
+            >
+              Watch
+            </Button>
+            <Button 
+              size="sm" 
+              onClick={() => handleFeatureClick(
+                "Direct Delegation", 
+                "Delegate your restaked assets directly to this operator from the dashboard with a seamless, one-click transaction flow."
+              )}
+            >
+              Delegate
+            </Button>
           </div>
         </div>
       </div>
@@ -346,6 +383,13 @@ const OperatorProfile = () => {
           <RiskAnalysisTab operatorId={operatorId} />
         </TabsContent>
       </Tabs>
+
+      <FeatureComingSoonModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        featureName={selectedFeature.name}
+        benefits={selectedFeature.benefits}
+      />
     </div>
   );
 };
