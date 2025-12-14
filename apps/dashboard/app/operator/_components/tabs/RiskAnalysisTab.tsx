@@ -1,11 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { MetricProgress } from "@/components/shared/data/MetricProgress";
-import { StatCard } from "@/components/shared/data/StatCard";
+import { Progress } from "@/components/ui/progress";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
 import { useRiskAssessment } from "@/hooks/crud/useOperatorRisk";
-import { AlertTriangle, CheckCircle, Shield, TrendingUp, Activity, Users, AlertOctagon } from "lucide-react";
+import {
+  AlertTriangle,
+  Shield,
+  Activity,
+  TrendingUp,
+  CheckCircle,
+  AlertOctagon,
+  Info,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 
 interface RiskAnalysisTabProps {
   operatorId: string;
@@ -37,145 +52,253 @@ export const RiskAnalysisTab = ({ operatorId }: RiskAnalysisTabProps) => {
     );
   }
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  // Helper to format numbers
+  const formatNumber = (num: number) => num.toLocaleString();
+  const formatPercent = (num: number) => `${(num * 100).toFixed(2)}%`;
+
+  // --- Logic for Metrics ---
+
+  // Risk Score Color
+  const getRiskColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 50) return "text-yellow-600";
+    return "text-red-600";
+  };
+  
+  const getRiskBadgeVariant = (level: string) => {
+      switch(level) {
+          case "LOW": return "default"; // Greenish usually or default primary
+          case "MEDIUM": return "secondary"; // Yellowish/Grey
+          case "HIGH": return "destructive";
+          case "CRITICAL": return "destructive";
+          default: return "outline";
+      }
   };
 
-  const formatPercent = (value?: string | number) => {
-    const num = Number(value);
-    return isNaN(num) ? "0%" : `${(num * 100).toFixed(2)}%`;
-  };
+  // Slashing Logic
+  const slashingCount = risk.metrics.slashing.count;
+  const isSlashed = slashingCount > 0;
 
-  const formatNumber = (value?: string | number) => {
-    const num = Number(value);
-    return isNaN(num) ? "0" : num.toLocaleString();
-  };
+  // Operational Days Logic
+  const opDays = risk.metrics.activity.operational_days;
+  const isNewEntrant = opDays < 30;
+
+  // HHI Logic
+  const hhi = risk.metrics.delegation.hhi;
+  const hhiLabel = hhi < 0.1 ? "Healthy Distribution" : hhi < 0.25 ? "Moderate Concentration" : "Highly Concentrated";
+  const hhiColor = hhi < 0.1 ? "bg-green-500" : hhi < 0.25 ? "bg-yellow-500" : "bg-red-500";
+
+  // Volatility Logic
+  const vol = risk.metrics.delegation.volatility_30d;
+  const volLabel = vol < 0.01 ? "Very Stable" : vol < 0.05 ? "Stable" : "Volatile";
+  const volBadgeVariant = vol < 0.01 ? "default" : vol < 0.05 ? "secondary" : "destructive";
 
   return (
-    <div className="space-y-6">
-      {/* Top Overview Cards */}
+    <div className="space-y-8">
+      {/* 1. Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          title="Risk Score"
-          value={risk.risk_score || "N/A"}
-          icon={<Shield className="h-4 w-4" />}
-          tooltip="The overall risk score assigned to this operator."
-          subtitle={
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">Level:</span>
-              <Badge variant={risk.risk_level === "LOW" ? "secondary" : "destructive"} className="text-[10px] px-1.5 py-0 h-5">
-                {risk.risk_level || "UNKNOWN"}
-              </Badge>
-            </div>
-          }
-        />
-        <StatCard
-          title="Confidence Score"
-          value={`${Number(risk.confidence_score) || 0}/100`}
-          icon={<Activity className="h-4 w-4" />}
-          tooltip="Confidence level in the risk assessment based on available data."
-          subtitle={
-            <span className="text-xs text-muted-foreground">
-              Assessment Date: {formatDate(risk.assessment_date)}
-            </span>
-          }
-        />
-        <Card>
-           <CardContent className="pt-6 flex flex-col justify-between h-full gap-2">
-              <InfoHeading heading="Status Flags" info="Operational status indicators." />
-              <div className="flex flex-wrap gap-2">
-                 <Badge variant={risk.flags.is_active ? "default" : "secondary"} className="gap-1">
-                    {risk.flags.is_active ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                    {risk.flags.is_active ? "Active" : "Inactive"}
-                 </Badge>
-                 <Badge variant={risk.flags.has_been_slashed ? "destructive" : "outline"} className="gap-1">
-                    {risk.flags.has_been_slashed && <AlertOctagon className="h-3 w-3" />}
-                    {risk.flags.has_been_slashed ? "Slashed" : "No Slashing"}
-                 </Badge>
-                 <Badge variant="outline" className={risk.flags.has_sufficient_data ? "text-green-600 border-green-200" : "text-yellow-600 border-yellow-200"}>
-                    {risk.flags.has_sufficient_data ? "Sufficient Data" : "Low Data"}
-                 </Badge>
-              </div>
-           </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Component Scores */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-muted-foreground" />
-              Component Scores
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <MetricProgress
-              metric="Performance"
-              value={Number(risk.component_scores.performance_score) || 0}
-            />
-            <MetricProgress
-              metric="Economic"
-              value={Number(risk.component_scores.economic_score) || 0}
-            />
-            <MetricProgress
-              metric="Network Position"
-              value={Number(risk.component_scores.network_position_score) || 0}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Key Metrics Grid */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Activity className="h-5 w-5 text-muted-foreground" />
-              Key Metrics
+        {/* Risk Score Card */}
+        <Card className="relative overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Overall Risk Score
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
-              <div className="space-y-1">
-                <InfoHeading heading="Delegation HHI" info="Herfindahl-Hirschman Index for delegation concentration. Lower is better (more decentralized)." />
-                <p className="text-2xl font-semibold">{Number(risk.key_metrics.delegation_hhi).toFixed(4)}</p>
-              </div>
-              
-              <div className="space-y-1">
-                <InfoHeading heading="Delegation Volatility (30d)" info="Standard deviation of delegation changes over the last 30 days." />
-                <p className="text-2xl font-semibold">{Number(risk.key_metrics.delegation_volatility_30d).toExponential(2)}</p>
-              </div>
-
-              <div className="space-y-1">
-                <InfoHeading heading="Growth Rate (30d)" info="Percentage growth in delegation over the last 30 days." />
-                <p className="text-2xl font-semibold">{formatPercent(Number(risk.key_metrics.growth_rate_30d) / 100)}</p> {/* Assuming growth rate is raw number e.g. 0.05 for 5% or 5 for 5%? Usually rates are 0-1. Let's assume it needs % formatting. Wait, user JSON showed "0". Let's stick to simple formatting first. */}
-              </div>
-
-              <div className="space-y-1">
-                <InfoHeading heading="Size Percentile" info="The operator's size relative to others." />
-                <p className="text-2xl font-semibold">{risk.key_metrics.size_percentile}th</p>
-              </div>
-
-              <div className="space-y-1">
-                <InfoHeading heading="Slashing Events" info="Total number of slashing events recorded." />
-                 <div className="flex items-center gap-2">
-                    <p className="text-2xl font-semibold">{risk.key_metrics.slashing_event_count}</p>
-                    {risk.key_metrics.slashing_event_count > 0 && <Badge variant="destructive">Warning</Badge>}
-                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <InfoHeading heading="Operational Days" info="Number of days the operator has been active." />
-                <p className="text-2xl font-semibold">{formatNumber(risk.key_metrics.operational_days)}</p>
-              </div>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-4xl font-bold ${getRiskColor(risk.scores.risk)}`}>
+                {risk.scores.risk}
+              </span>
+              <span className="text-sm text-muted-foreground">/ 100</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+                <Badge variant={getRiskBadgeVariant(risk.risk_level)}>{risk.risk_level} RISK</Badge>
+                <span className="text-xs text-muted-foreground">Confidence: {risk.scores.confidence}%</span>
             </div>
           </CardContent>
         </Card>
+
+        {/* Slashing Status Card */}
+        <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Slashing History</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {isSlashed ? (
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-destructive font-bold text-xl">
+                            <AlertOctagon className="h-6 w-6" />
+                            <span>{slashingCount} Events</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Total Penalties: {risk.metrics.slashing.lifetime_amount}</p>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-green-600 font-bold text-xl">
+                            <Shield className="h-6 w-6" />
+                            <span>Clean Record</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">No slashing events recorded.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+
+        {/* Stability / Operational Status */}
+        <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Operational Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                         <span className="text-2xl font-bold">{formatNumber(opDays)}</span>
+                         <span className="text-sm text-muted-foreground">Days Active</span>
+                    </div>
+                    {isNewEntrant && (
+                        <Badge variant="secondary" className="w-fit gap-1">
+                            <Info className="h-3 w-3" /> New Entrant
+                        </Badge>
+                    )}
+                    {!isNewEntrant && (
+                        <Badge variant="outline" className="w-fit text-green-600 border-green-200 gap-1">
+                            <CheckCircle className="h-3 w-3" /> Established
+                        </Badge>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
       </div>
+
+      {/* 2. Key Metrics Grid */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5" /> Key Risk Metrics
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Delegation HHI */}
+            <Card>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                        <InfoHeading heading="Delegation Concentration (HHI)" info="Measures how concentrated the delegation is. Lower is better (more decentralized)." />
+                        <span className="text-sm font-mono text-muted-foreground">{hhi.toFixed(4)}</span>
+                    </div>
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                            <span className="font-medium">{hhiLabel}</span>
+                        </div>
+                        <Progress value={Math.min(hhi * 100, 100)} className="h-2" indicatorClassName={hhiColor} />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Volatility */}
+            <Card>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                         <InfoHeading heading="Delegation Volatility (30d)" info="Standard deviation of delegation changes over the last 30 days." />
+                         <Badge variant={volBadgeVariant}>{volLabel}</Badge>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold">{vol.toExponential(2)}</span>
+                        <span className="text-sm text-muted-foreground">std dev</span>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Size Percentile */}
+            <Card>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                        <InfoHeading heading="Size Percentile" info="The operator's size relative to the rest of the network." />
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold">
+                            {risk.metrics.delegation.size_percentile >= 90 ? "Top 10%" : 
+                             risk.metrics.delegation.size_percentile >= 50 ? "Above Median" : "Below Median"}
+                        </span>
+                        <span className="text-sm text-muted-foreground">({risk.metrics.delegation.size_percentile}th Percentile)</span>
+                    </div>
+                </CardContent>
+            </Card>
+
+             {/* Growth Rate */}
+             <Card>
+                <CardContent className="pt-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                        <InfoHeading heading="Growth Rate (30d)" info="Change in delegation over the last 30 days." />
+                        <TrendingUp className={`h-4 w-4 ${risk.metrics.delegation.growth_rate_30d >= 0 ? "text-green-500" : "text-red-500"}`} />
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className={`text-2xl font-bold ${risk.metrics.delegation.growth_rate_30d >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {risk.metrics.delegation.growth_rate_30d > 0 ? "+" : ""}
+                            {formatPercent(risk.metrics.delegation.growth_rate_30d)}
+                        </span>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
+
+      {/* 3. Deep Dive Section */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="advanced-metrics">
+          <AccordionTrigger>Advanced Metrics & Raw Data</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Concentration Details */}
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Concentration Analysis</h4>
+                        <Separator />
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span>Gini Coefficient</span>
+                                <span className="font-mono">{risk.concentration.delegation?.gini_coefficient || "N/A"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Top 1% Share</span>
+                                <span className="font-mono">{risk.concentration.delegation?.top_1_percentage || "N/A"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Top 10% Share</span>
+                                <span className="font-mono">{risk.concentration.delegation?.top_10_percentage || "N/A"}</span>
+                            </div>
+                             <div className="flex justify-between">
+                                <span>Effective Entities</span>
+                                <span className="font-mono">{risk.concentration.delegation?.effective_entities || "N/A"}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Volatility Details */}
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Volatility Analysis</h4>
+                        <Separator />
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span>7d Volatility</span>
+                                <span className="font-mono">{risk.volatility.tvs?.volatility_7d || "N/A"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>90d Volatility</span>
+                                <span className="font-mono">{risk.volatility.tvs?.volatility_90d || "N/A"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Trend Direction</span>
+                                <span className="font-mono capitalize">{risk.volatility.tvs?.trend_direction?.toLowerCase() || "N/A"}</span>
+                            </div>
+                             <div className="flex justify-between">
+                                <span>Coeff. of Variation</span>
+                                <span className="font-mono">{risk.volatility.tvs?.coefficient_of_variation || "N/A"}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };

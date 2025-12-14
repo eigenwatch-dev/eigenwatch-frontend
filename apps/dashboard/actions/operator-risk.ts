@@ -2,18 +2,18 @@
 
 import { handleApiAction } from "@/lib/handleApiAction";
 import {
-  RiskAssessment,
+  OperatorRiskProfile,
   ConcentrationType,
-  ConcentrationMetrics,
+  ConcentrationMetric,
   VolatilityMetricType,
-  VolatilityMetrics,
+  VolatilityMetric,
 } from "@/types/risk.types";
 
 // ==================== RISK & ANALYTICS ====================
 
 export const getRiskAssessment = async (id: string, date?: string) => {
   const queryString = date ? `?date=${date}` : "";
-  return handleApiAction<RiskAssessment>({
+  return handleApiAction<OperatorRiskProfile>({
     endpoint: `/api/v1/operators/${id}/risk${queryString}`,
     method: "get",
   });
@@ -26,7 +26,7 @@ export const getConcentrationMetrics = async (
 ) => {
   const params = new URLSearchParams({ concentration_type: concentrationType });
   if (date) params.append("date", date);
-  return handleApiAction<ConcentrationMetrics>({
+  return handleApiAction<ConcentrationMetric>({
     endpoint: `/api/v1/operators/${id}/concentration?${params.toString()}`,
     method: "get",
   });
@@ -39,7 +39,7 @@ export const getVolatilityMetrics = async (
 ) => {
   const params = new URLSearchParams({ metric_type: metricType });
   if (date) params.append("date", date);
-  return handleApiAction<VolatilityMetrics>({
+  return handleApiAction<VolatilityMetric>({
     endpoint: `/api/v1/operators/${id}/volatility?${params.toString()}`,
     method: "get",
   });

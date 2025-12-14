@@ -251,7 +251,7 @@ const OperatorProfile = () => {
             />
             <RiskBadge
               level={riskData?.risk_level || "MEDIUM"}
-              score={riskData?.risk_score || "50"}
+              score={riskData?.scores.risk.toString() || "---"}
             />
           </div>
 

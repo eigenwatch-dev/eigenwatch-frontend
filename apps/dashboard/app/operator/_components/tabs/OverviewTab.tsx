@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, TrendingUp } from "lucide-react";
 import { useDailySnapshots } from "@/hooks/crud/useOperator";
 import { OperatorDetail } from "@/types/operator.types";
-import { RiskAssessment } from "@/types/risk.types";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import { MetricProgress } from "@/components/shared/data/MetricProgress";
 import { ActivityItem } from "@/components/shared/data/ActivityItem";
@@ -79,7 +78,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               {/* Risk Score */}
               <MetricProgress
                 metric="Risk Score"
-                value={Number(riskData?.risk_score) || 0}
+                value={Number(riskData?.scores.risk) || 0}
               />
 
               {/* Mock Additional Scores - Replace with real data when available */}
@@ -87,17 +86,17 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 <MetricProgress
                   metric="Performance Score"
                   value={
-                    Number(riskData?.component_scores.performance_score) || 0
+                    Number(riskData?.scores.performance) || 0
                   }
                 />
                 <MetricProgress
                   metric="Economic Score"
-                  value={Number(riskData?.component_scores.economic_score) || 0}
+                  value={Number(riskData?.scores.economic) || 0}
                 />
                 <MetricProgress
                   metric="Network Position"
                   value={
-                    Number(riskData?.component_scores.network_position_score) ||
+                    Number(riskData?.scores.network_position) ||
                     0
                   }
                 />
@@ -108,7 +107,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Confidence Score</span>
                   <Badge className="bg-transparent text-muted-foreground">
-                    {riskData?.confidence_score}%
+                    {riskData?.scores.confidence}%
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
