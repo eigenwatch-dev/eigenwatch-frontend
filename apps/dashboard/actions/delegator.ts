@@ -13,6 +13,7 @@ import {
   DelegatorDetail,
   DelegationHistoryParams,
   DelegationHistory,
+  DelegatorsResponse,
 } from "@/types/delegator.types";
 
 // ==================== DELEGATORS ====================
@@ -22,7 +23,7 @@ export const getOperatorDelegators = async (
   params?: DelegatorListParams
 ) => {
   const queryString = serializeParams(params as any);
-  return handleApiAction<Delegator[]>({
+  return handleApiAction<DelegatorsResponse>({
     endpoint: `/api/v1/operators/${id}/delegators${queryString}`,
     method: "get",
   });

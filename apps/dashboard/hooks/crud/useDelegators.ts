@@ -32,7 +32,7 @@ export const useOperatorDelegators = (
 export const useDelegatorDetail = (
   operatorId: string,
   stakerId: string,
-  enabled = true
+  enabled = true 
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorDelegator(operatorId, stakerId),
