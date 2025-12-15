@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { ArrowUpRight, ArrowDownRight, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const operators = [
   {
@@ -43,6 +44,7 @@ const operators = [
 ];
 
 export default function OperatorDiscovery() {
+  const router = useRouter();
   return (
     <section className="py-20 px-4 md:px-8 bg-[#09090B]">
       <div className="max-w-7xl mx-auto">
@@ -150,7 +152,10 @@ export default function OperatorDiscovery() {
 
           <div className="p-4 border-t border-[#27272A80] flex justify-between items-center text-xs text-[#71717A]">
             <span>Showing 4 of 1,247 operators</span>
-            <button className="px-4 py-2 rounded-lg border border-[#27272A] hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors">
+            <button
+              onClick={() => router.push("/operator")}
+              className="px-4 py-2 rounded-lg border border-[#27272A] hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors"
+            >
               View All Operators
             </button>
           </div>
