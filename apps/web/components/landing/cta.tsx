@@ -3,8 +3,10 @@
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { AppKitButton, useAppKitAccount } from "@reown/appkit/react";
 
 export default function CTA() {
+  const { isConnected } = useAppKitAccount();
   return (
     <section className="py-20 px-4 md:px-8 bg-[#09090B]">
       <div className="max-w-7xl mx-auto">
@@ -23,10 +25,8 @@ export default function CTA() {
               delegated operators, and receive real-time alerts.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-              <button className="bg-[#155DFC] hover:bg-[#155DFC]/90 text-white px-8 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
-                Connect Wallet
-              </button>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16 items-center">
+              {!isConnected && <AppKitButton size="lg" />}
               <Link
                 href="#"
                 className="bg-[#18181B80] border border-[#3F3F46] hover:bg-[#18181B] text-white px-8 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"

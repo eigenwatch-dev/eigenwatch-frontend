@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ConnectButton } from "./ConnectButton";
+import { AppKitButton } from "@reown/appkit/react";
 
 export interface NavLink {
   label: string;
@@ -70,7 +70,7 @@ export function NavBar({
             />
           </Link>
         </div>
- 
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex my-auto gap-[32px]">
           {navLinks.map((route, index) => {
@@ -102,7 +102,8 @@ export function NavBar({
 
         {/* Desktop Connect Button */}
         <div className="hidden md:flex my-auto">
-          <ConnectButton />
+          {/* <ConnectButton /> */}
+          <AppKitButton />
         </div>
 
         {/* Mobile Menu Button */}
@@ -138,7 +139,8 @@ export function NavBar({
               ))}
               <motion.div variants={itemVariants}>
                 <div className="mt-4">
-                  <ConnectButton />
+                  {/* <ConnectButton /> */}
+                  <AppKitButton size="md" />
                 </div>
               </motion.div>
             </div>

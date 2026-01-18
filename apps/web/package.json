@@ -11,8 +11,14 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@reown/appkit": "^1.8.16",
+    "@reown/appkit-adapter-wagmi": "^1.8.16",
+    "@reown/walletkit": "^1.4.1",
     "@repo/ui": "*",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query": "^5.90.16",
+    "@walletconnect/core": "^2.23.1",
+    "@walletconnect/utils": "^2.23.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.561.0",
@@ -24,7 +30,9 @@
     "react-icons": "^5.5.0",
     "recharts": "^3.5.1",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "viem": "^2.44.1",
+    "wagmi": "^3.3.2"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

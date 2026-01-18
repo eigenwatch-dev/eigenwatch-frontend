@@ -80,7 +80,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl lg:text-7xl p-1 text-transparent font-normal bg-linear-to-b from-[#ffffff] via-[#F4F4F5] to-[#9F9FA9] bg-clip-text"
+            className="text-5xl lg:text-7xl pb-3 text-transparent font-normal bg-linear-to-b from-[#ffffff] via-[#F4F4F5] to-[#9F9FA9] bg-clip-text"
           >
             Risk Monitoring for
           </motion.h1>
