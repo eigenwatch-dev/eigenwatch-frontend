@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ConnectButton } from "./ConnectButton";
+import { AppKitButton } from "@reown/appkit/react";
 
 export interface NavLink {
   label: string;
@@ -57,7 +57,7 @@ export function NavBar({
 
   return (
     <nav className="fixed inset-0 z-50 bg-[#09090B]/80 backdrop-blur-md border-b border-white/5 w-full h-fit">
-      <div className="flex justify-between max-w-[1440px] mx-auto w-full px-4 md:px-[108px] py-[12px]">
+      <div className="flex justify-between max-w-360 mx-auto w-full px-4 md:px-27 py-3">
         {/* Logo */}
         <div className="flex my-auto">
           <Link href={logoHref}>
@@ -70,9 +70,9 @@ export function NavBar({
             />
           </Link>
         </div>
- 
+
         {/* Desktop Navigation */}
-        <div className="hidden md:flex my-auto gap-[32px]">
+        <div className="hidden md:flex my-auto gap-8">
           {navLinks.map((route, index) => {
             const isActive =
               route.href === "/"
@@ -81,9 +81,9 @@ export function NavBar({
             return (
               <Link key={index} href={route.href}>
                 <button
-                  className={`flex h-[40px] py-[8px] transition-all duration-300 ${
+                  className={`flex h-10 py-2 transition-all duration-300 ${
                     isActive
-                      ? "px-[24px] rounded-[20px] bg-[#1C398E33]"
+                      ? "px-6 rounded-[20px] bg-[#1C398E33]"
                       : "bg-transparent"
                   }`}
                 >
@@ -102,7 +102,8 @@ export function NavBar({
 
         {/* Desktop Connect Button */}
         <div className="hidden md:flex my-auto">
-          <ConnectButton />
+          {/* <ConnectButton /> */}
+          <AppKitButton />
         </div>
 
         {/* Mobile Menu Button */}
@@ -122,7 +123,7 @@ export function NavBar({
             initial="initial"
             animate="animate"
             exit="exit"
-            className="md:hidden absolute inset-0 top-[65px] bg-[#09090B] w-full h-screen border-t border-white/5 flex flex-col p-4"
+            className="md:hidden absolute inset-0 top-16.25 bg-[#09090B] w-full h-screen border-t border-white/5 flex flex-col p-4"
           >
             <div className="space-y-4">
               {navLinks.map((link, index) => (
@@ -138,7 +139,8 @@ export function NavBar({
               ))}
               <motion.div variants={itemVariants}>
                 <div className="mt-4">
-                  <ConnectButton />
+                  {/* <ConnectButton /> */}
+                  <AppKitButton size="md" />
                 </div>
               </motion.div>
             </div>

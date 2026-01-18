@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AppProvider from "./Provider";
 import { NavBar } from "@repo/ui/NavBar";
+import WalletProvider from "../../../packages/ui/src/providers/wallet";
+
+import { headers } from "next/headers";
 
 const navLinks = [
   { label: "Dashboard", href: "/" },
@@ -76,27 +79,34 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersObj = await headers();
+  const cookies = headersObj.get("cookie");
+
   return (
     <html lang="en" className="dark">
       <body className={`antialiased bg-background text-foreground`}>
-        <AppProvider>
-          <div className="flex flex-col w-full h-screen">
-            <NavBar
-              logoHref={process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"}
-              navLinks={navLinks}
-            />
-            <div className=" w-full flex h-full overflow-y-auto pt-[65px]">
-              <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
-                {children}
+        <WalletProvider cookies={cookies}>
+          <AppProvider>
+            <div className="flex flex-col w-full h-screen">
+              <NavBar
+                logoHref={
+                  process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"
+                }
+                navLinks={navLinks}
+              />
+              <div className=" w-full flex h-full overflow-y-auto pt-[65px]">
+                <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
+                  {children}
+                </div>
               </div>
             </div>
-          </div>
-        </AppProvider>
+          </AppProvider>
+        </WalletProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -109,7 +119,8 @@ export default function RootLayout({
                 "Real-time risk intelligence and analytics for EigenLayer operators, AVSs, and strategies.",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://dashboard.eigenwatch.xyz/search?q={search_term_string}",
+                target:
+                  "https://dashboard.eigenwatch.xyz/search?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),

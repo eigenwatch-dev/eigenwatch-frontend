@@ -10,6 +10,7 @@ import {
   BellRing,
   ChartBar,
 } from "lucide-react";
+import SpotlightCard from "../ui/spotlight-card";
 
 const tools = [
   {
@@ -113,24 +114,29 @@ export default function Tools() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-[#18181B80] border-[1.33px] border-[#27272A80] rounded-[14px] p-6 hover:border-[#27272A] transition-colors"
+              className="bg-[#18181B80] border-[1.33px] border-[#27272A80] rounded-[14px] hover:border-[#27272A] transition-colors overflow-clip"
             >
-              <div
-                className="rounded-lg w-10 h-10 border-[1.33px] flex items-center justify-center mb-4"
-                style={{
-                  borderColor: tool.color.badgeBorder,
-                  backgroundColor: tool.color.badge,
-                  color: tool.color.icon,
-                }}
+              <SpotlightCard
+                className="p-6"
+                spotlightColor="rgba(160,190,253,0.19)"
               >
-                <tool.icon size={20} />
-              </div>
-              <h3 className="text-xl font-medium text-white mb-3">
-                {tool.value}
-              </h3>
-              <p className="text-[#9F9FA9] text-sm leading-relaxed">
-                {tool.stat}
-              </p>
+                <div
+                  className="rounded-lg w-10 h-10 border-[1.33px] flex items-center justify-center mb-4"
+                  style={{
+                    borderColor: tool.color.badgeBorder,
+                    backgroundColor: tool.color.badge,
+                    color: tool.color.icon,
+                  }}
+                >
+                  <tool.icon size={20} />
+                </div>
+                <h3 className="text-xl font-medium text-white mb-3">
+                  {tool.value}
+                </h3>
+                <p className="text-[#9F9FA9] text-sm leading-relaxed">
+                  {tool.stat}
+                </p>
+              </SpotlightCard>
             </motion.div>
           ))}
         </div>

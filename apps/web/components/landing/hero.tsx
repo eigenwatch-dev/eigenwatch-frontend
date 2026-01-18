@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Shield, TrendingUp, Users } from "lucide-react";
 import { IconType } from "react-icons";
 import { BiPulse } from "react-icons/bi";
+import SpotlightCard from "../ui/spotlight-card";
 
 interface HeroStatsProps {
   title: string;
@@ -79,7 +80,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl lg:text-7xl p-1 text-transparent font-normal bg-linear-to-b from-[#ffffff] via-[#F4F4F5] to-[#9F9FA9] bg-clip-text"
+            className="text-5xl lg:text-7xl pb-3 text-transparent font-normal bg-linear-to-b from-[#ffffff] via-[#F4F4F5] to-[#9F9FA9] bg-clip-text"
           >
             Risk Monitoring for
           </motion.h1>
@@ -135,25 +136,30 @@ const Hero = () => {
             initial={{ opacity: 0, y: -100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5, delay: index * 0.2 }}
-            className="min-w-[302px] max-w-[302px] bg-[#18181B80] border-[1.33px] border-[#27272A80] flex-1 rounded-[14px] p-6 pb-0.5"
+            className="min-w-75.5 max-w-75.5 bg-[#18181B80] border-[1.33px] border-[#27272A80] flex-1 rounded-[14px] overflow-clip"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm text-[#9F9FA9]">{stat.title}</h4>
-              <div
-                className="rounded-full w-10 aspect-square border-[1.33px] flex items-center justify-center"
-                style={{
-                  borderColor: stat.color.badgeBorder,
-                  backgroundColor: stat.color.badge,
-                  color: stat.color.icon,
-                }}
-              >
-                <stat.icon size={20} />
+            <SpotlightCard
+              className="p-6 pb-0.5"
+              spotlightColor="rgba(160,190,253,0.19)"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm text-[#9F9FA9]">{stat.title}</h4>
+                <div
+                  className="rounded-full w-10 aspect-square border-[1.33px] flex items-center justify-center"
+                  style={{
+                    borderColor: stat.color.badgeBorder,
+                    backgroundColor: stat.color.badge,
+                    color: stat.color.icon,
+                  }}
+                >
+                  <stat.icon size={20} />
+                </div>
               </div>
-            </div>
-            <h2 className="text-3xl mb-3">{stat.value}</h2>
-            <span className="text-sm text-[#71717B] mb-5 block">
-              {stat.stat}
-            </span>
+              <h2 className="text-3xl mb-3">{stat.value}</h2>
+              <span className="text-sm text-[#71717B] mb-5 block">
+                {stat.stat}
+              </span>
+            </SpotlightCard>
           </motion.div>
         ))}
       </motion.div>
