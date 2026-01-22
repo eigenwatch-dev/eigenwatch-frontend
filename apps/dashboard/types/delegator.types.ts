@@ -16,20 +16,19 @@ export interface DelegatorListParams {
 }
 
 export interface DelegatorsResponse {
-  
-    delegators: Delegator[];
-    summary: {
-      total_delegators: number;
-      active_delegators: number;
-      total_shares: string;
-    };
-    pagination: {
-      total: number;
-      limit: number;
-      offset: number;
-      has_more: boolean;
-      next_offset: number;
-    };
+  delegators: Delegator[];
+  summary: {
+    total_delegators: number;
+    active_delegators: number;
+    total_shares: string;
+  };
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    has_more: boolean;
+    next_offset: number;
+  };
 }
 
 export interface Delegator {
@@ -39,6 +38,7 @@ export interface Delegator {
   delegated_at: string;
   undelegated_at: string | null;
   total_shares: string;
+  total_tvs: string;
   shares_percentage: string;
   strategies: DelegatorStrategy[];
 }
@@ -52,6 +52,7 @@ export interface DelegatorStrategy {
   strategy_id: string;
   strategy_name: string;
   shares: string;
+  tvs: string;
 }
 
 export type DelegationEventType =

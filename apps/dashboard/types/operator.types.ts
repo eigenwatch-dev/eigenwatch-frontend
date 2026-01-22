@@ -76,10 +76,25 @@ export interface OperatorDetail {
   };
 }
 
+// New interface for the enhanced strategy data
+export interface StrategyTVS {
+  strategy_address: string;
+  token: {
+    name: string;
+    symbol: string;
+    logo_url: string | null;
+    decimals: number;
+  };
+  tvs_usd: number;
+  tvs_percentage: number;
+  utilization_rate: number;
+  delegator_count: number;
+}
+
 export interface OperatorStats {
   tvs: {
     total: number;
-    by_strategy: Strategy[];
+    by_strategy: StrategyTVS[];
   };
   delegation: {
     total_delegators: number;

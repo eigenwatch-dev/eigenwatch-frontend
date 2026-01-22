@@ -20,14 +20,11 @@ import {
   ExternalLink,
   CheckCircle2,
 } from "lucide-react";
-import {
-  useOperator,
-  useOperatorStats,
-} from "@/hooks/crud/useOperator";
+import { useOperator, useOperatorStats } from "@/hooks/crud/useOperator";
 import OverviewTab from "./tabs/OverviewTab";
 import StrategiesTab from "./tabs/StrategiesTab";
 import { useRiskAssessment } from "@/hooks/crud/useOperatorRisk";
-import { formatEther } from "@/lib/formatting";
+import { formatUSD } from "@/lib/formatting";
 import { AllocationsTab } from "./tabs/AllocationsTab";
 import { AVSTab } from "./tabs/AVSTab";
 import { CommissionTab } from "./tabs/CommissionTab";
@@ -44,10 +41,13 @@ const OperatorProfile = () => {
   const operatorId = params?.operator_id as string;
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
-  
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState<{ name: string; benefits: string }>({
+  const [selectedFeature, setSelectedFeature] = useState<{
+    name: string;
+    benefits: string;
+  }>({
     name: "",
     benefits: "",
   });
@@ -204,30 +204,36 @@ const OperatorProfile = () => {
           </div>
 
           <div className="flex gap-2 ">
-            <Button 
-              size="sm" 
-              onClick={() => handleFeatureClick(
-                "Compare Operators", 
-                "Compare performance metrics, fees, and risk scores across multiple operators side-by-side to make informed delegation decisions."
-              )}
+            <Button
+              size="sm"
+              onClick={() =>
+                handleFeatureClick(
+                  "Compare Operators",
+                  "Compare performance metrics, fees, and risk scores across multiple operators side-by-side to make informed delegation decisions.",
+                )
+              }
             >
               Compare
             </Button>
-            <Button 
-              size="sm" 
-              onClick={() => handleFeatureClick(
-                "Watchlist", 
-                "Track your favorite operators and receive real-time alerts on performance changes, slashing events, and fee updates."
-              )}
+            <Button
+              size="sm"
+              onClick={() =>
+                handleFeatureClick(
+                  "Watchlist",
+                  "Track your favorite operators and receive real-time alerts on performance changes, slashing events, and fee updates.",
+                )
+              }
             >
               Watch
             </Button>
-            <Button 
-              size="sm" 
-              onClick={() => handleFeatureClick(
-                "Direct Delegation", 
-                "Delegate your restaked assets directly to this operator from the dashboard with a seamless, one-click transaction flow."
-              )}
+            <Button
+              size="sm"
+              onClick={() =>
+                handleFeatureClick(
+                  "Direct Delegation",
+                  "Delegate your restaked assets directly to this operator from the dashboard with a seamless, one-click transaction flow.",
+                )
+              }
             >
               Delegate
             </Button>
@@ -239,7 +245,7 @@ const OperatorProfile = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Value Secured"
-          value={formatEther(stats?.tvs.total || 0)}
+          value={formatUSD(stats?.tvs.total || 0)}
           subtitle="Assets under management"
           icon={<Activity />}
           tooltip="The total value of assets delegated to this operator. A higher TVS indicates more trust from stakers."
@@ -270,7 +276,7 @@ const OperatorProfile = () => {
           title="Operational Days"
           value={operator.status.operational_days}
           subtitle={`≈ ${Math.floor(
-            operator.status.operational_days / 30
+            operator.status.operational_days / 30,
           )} months`}
           icon={<TrendingUp />}
           tooltip="The number of days this operator has been actively operating. Longer operational history can indicate more experience."
@@ -363,9 +369,9 @@ const OperatorProfile = () => {
           <StrategiesTab operatorId={operatorId} />
         </TabsContent>
 
-        <TabsContent value="avs">
+        {/* <TabsContent value="avs">
           <AVSTab operatorId={operatorId} />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="delegators">
           <DelegatorsTab operatorId={operatorId} />
@@ -384,9 +390,9 @@ const OperatorProfile = () => {
         </TabsContent>
       </Tabs>
 
-      <FeatureComingSoonModal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
+      <FeatureComingSoonModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
         featureName={selectedFeature.name}
         benefits={selectedFeature.benefits}
       />

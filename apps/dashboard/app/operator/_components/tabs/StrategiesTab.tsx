@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// components/operator/tabs/StrategiesTab.tsx
 "use client";
 
 import React from "react";
@@ -9,34 +6,23 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Info, TrendingUp, PieChart } from "lucide-react";
-import { formatEther } from "@/lib/formatting";
 import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { DonutChart } from "@/components/shared/charts/DonutChart";
 
-import { useOperatorStrategies } from "@/hooks/crud/useStrategy";
+import { useOperatorStats } from "@/hooks/crud/useOperator";
+import { StrategyTVS } from "@/types/operator.types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StrategiesTabProps {
   operatorId: string;
 }
 
 const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
-  const { data: strategiesData, isLoading } = useOperatorStrategies(operatorId);
-  const strategies = strategiesData?.strategies || [];
-  // Prepare data for pie chart
-  const pieChartData = strategies.map((strategy, index) => ({
-    name: strategy.name || strategy.symbol || "Unknown",
-    value: strategy.tvs / 1e18,
-    color: `hsl(var(--chart-${(index % 5) + 1}))`,
-  }));
+  const { data: statsData, isLoading } = useOperatorStats(operatorId);
 
-  const COLORS = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
-  ];
+  const strategies = statsData?.tvs.by_strategy || [];
+  const totalTVS = statsData?.tvs.total || 0;
 
   if (isLoading) {
     return (
@@ -73,10 +59,33 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
     );
   }
 
-  const totalTVS = strategies.reduce((sum, s) => sum + s.tvs, 0);
-  const avgUtilization =
-    strategies.reduce((sum, s) => sum + (s.utilizationRate || 0), 0) /
-    strategies.length;
+  // Find top strategy for "Dominance" card
+  const topStrategy =
+    strategies.length > 0
+      ? strategies.reduce((prev, current) => {
+          return prev.tvs_usd > current.tvs_usd ? prev : current;
+        })
+      : null;
+
+  // Dynamic color generation
+  const stringToColor = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash) % 360;
+    return `hsl(${h}, 70%, 50%)`;
+  };
+
+  // Prepare data for pie chart with dynamic colors
+  const pieChartData = strategies.map((strategy) => ({
+    name: strategy.token?.symbol || "Unknown",
+    value: strategy.tvs_usd,
+    percentage: strategy.tvs_percentage,
+    color: stringToColor(strategy.token?.symbol || strategy.strategy_address),
+  }));
+
+  const chartColors = pieChartData.map((d) => d.color);
 
   return (
     <div className="space-y-6">
@@ -90,19 +99,21 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
 
         <StatCard
           title="Combined TVS"
-          value={formatEther(totalTVS.toString())}
+          value={`$${totalTVS.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`}
           subtitle="Total delegated value"
           tooltip="Total value across all strategies"
           icon={<Info className="h-4 w-4" />}
         />
 
         <StatCard
-          title="Avg Utilization"
-          value={`${avgUtilization.toFixed(1)}%`}
-          subtitle={
-            <Progress value={avgUtilization} className="h-1.5 w-full mt-1" />
-          }
-          tooltip="Average utilization across all strategies"
+          title="Dominance"
+          value={`${topStrategy?.tvs_percentage.toFixed(1)}%`}
+          subtitle={topStrategy?.token?.name || "Highest Share"}
+          tooltip="The strategy with the highest share of total TVS"
+          icon={<TrendingUp className="h-4 w-4" />}
         />
       </div>
 
@@ -117,14 +128,19 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
               data={pieChartData}
               category="value"
               index="name"
-              colors={COLORS}
-              valueFormatter={(value) => `${value.toFixed(2)} ETH`}
+              colors={chartColors}
+              valueFormatter={(value) =>
+                `$${value.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
+              }
               height={300}
             />
 
             <div className="flex flex-col justify-center space-y-3">
               <h4 className="font-semibold mb-2">Strategy Breakdown</h4>
-              {pieChartData.slice(0, 5).map((item, index) => (
+              {pieChartData.slice(0, 8).map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
@@ -133,9 +149,14 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                     />
                     <span className="text-sm">{item.name}</span>
                   </div>
-                  <span className="text-sm font-medium">
-                    {item.value.toFixed(2)} ETH
-                  </span>
+                  <div className="text-right">
+                    <span className="text-sm font-medium block">
+                      ${item.value.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-muted-foreground block">
+                      {item.percentage.toFixed(1)}%
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -146,61 +167,52 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
       {/* Strategies Table */}
       <ReusableTable
         columns={[
-          { key: "name", displayName: "Strategy" },
-          { key: "tvs", displayName: "Total Value" },
-          { key: "encumbered", displayName: "Allocated" },
-          { key: "available", displayName: "Available" },
-          { key: "utilizationRate", displayName: "Utilization" },
-          { key: "delegatorCount", displayName: "Delegators" },
+          { key: "token", displayName: "Strategy" },
+          { key: "tvs_usd", displayName: "Total Value" },
+          { key: "tvs_percentage", displayName: "Share" },
+          { key: "delegator_count", displayName: "Delegators" },
         ]}
-        data={strategies.map((s) => {
-          const tvs = s.tvs / 1e18;
-          const encumbered = (s.encumbered || 0) / 1e18;
-          const available = tvs - encumbered;
+        data={strategies.map((s: StrategyTVS) => {
           return {
             ...s,
-            tvs: (
+            id: s.strategy_address,
+            tvs_usd: (
               <div className="space-y-1">
-                <p className="font-medium">{tvs.toFixed(4)} ETH</p>
-                <p className="text-xs text-muted-foreground">
-                  ≈ ${(tvs * 2400).toLocaleString()}
+                <p className="font-medium">
+                  $
+                  {s.tvs_usd.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
             ),
-            encumbered: (
-              <div className="space-y-1">
-                <p className="font-medium">{encumbered.toFixed(4)} ETH</p>
-                <p className="text-xs text-muted-foreground">
-                  {((encumbered / tvs) * 100).toFixed(1)}% of total
-                </p>
+            tvs_percentage: (
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  {s.tvs_percentage.toFixed(2)}%
+                </span>
               </div>
             ),
-            available: (
-              <div className="space-y-1">
-                <p className="font-medium">{available.toFixed(4)} ETH</p>
-                <p className="text-xs text-muted-foreground">Unallocated</p>
-              </div>
+            delegator_count: (
+              <Badge variant="secondary">{s.delegator_count || 0}</Badge>
             ),
-            utilizationRate: (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {(s.utilizationRate || 0).toFixed(1)}%
-                  </span>
-                  {(s.utilizationRate || 0) > 80 && (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  )}
+            token: (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={s.token?.logo_url || ""} />
+                  <AvatarFallback>
+                    {s.token?.symbol?.slice(0, 2) || "??"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <p className="font-medium">
+                    {s.token?.name || "Unknown Strategy"}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {s.token?.symbol || s.strategy_address.slice(0, 8)}
+                  </p>
                 </div>
-                <Progress value={s.utilizationRate || 0} className="h-1.5" />
-              </div>
-            ),
-            delegatorCount: <Badge variant="secondary">{s.delegatorCount || 0}</Badge>,
-            name: (
-              <div className="space-y-1">
-                <p className="font-medium">{s.name || "Unknown Strategy"}</p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {s.symbol || s.address?.slice(0, 10) + "..."}
-                </p>
               </div>
             ),
           };
