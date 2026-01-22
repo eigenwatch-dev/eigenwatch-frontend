@@ -6,8 +6,9 @@ import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatAddress, formatEther } from "@/lib/formatting";
+import { formatAddress, formatUSD } from "@/lib/formatting";
 import { useOperatorDelegators } from "@/hooks/crud/useDelegators";
+import { useOperatorStats } from "@/hooks/crud/useOperator";
 
 // components/operator/tabs/DelegatorsTab.tsx
 interface DelegatorsTabProps {
@@ -18,11 +19,16 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(5);
 
-  const { data: delegators, isLoading } = useOperatorDelegators(operatorId, {
-    limit,
-    offset,
-  });
-  if (isLoading) {
+  const { data: delegators, isLoading: isDelegatorsLoading } =
+    useOperatorDelegators(operatorId, {
+      limit,
+      offset,
+    });
+
+  const { data: stats, isLoading: isStatsLoading } =
+    useOperatorStats(operatorId);
+
+  if (isDelegatorsLoading || isStatsLoading) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -32,11 +38,10 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
     );
   }
 
-  console.log({ delegators });
-
   const delegatorsList = delegators?.delegators || [];
   const total = delegators?.summary?.total_delegators || 0;
   const active = delegators?.summary?.active_delegators || 0;
+  const operatorTotalTvs = stats?.tvs?.total || 1; // Avoid division by zero
 
   return (
     <div className="space-y-4">
@@ -55,29 +60,39 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
         <ReusableTable
           columns={[
             { key: "staker_address", displayName: "Staker Address" },
-            { key: "total_shares", displayName: "Shares" },
-            { key: "shares_percentage", displayName: "Share %" },
+            { key: "total_tvs", displayName: "TVS (USD)" },
+            { key: "shares_percentage", displayName: "% Staked" },
             { key: "strategies_count", displayName: "Strategies" },
             { key: "delegated_at", displayName: "Delegation Date" },
             { key: "status", displayName: "Status" },
           ]}
-          data={delegatorsList.map((delegator) => ({
-            ...delegator,
-            staker_address: formatAddress(delegator.staker_address),
-            total_shares: formatEther(delegator.total_shares),
-            shares_percentage: `${parseFloat(delegator.shares_percentage).toFixed(2)}%`,
-            strategies_count: `${delegator.strategies.length} Strategies`,
-            delegated_at: new Date(delegator.delegated_at).toLocaleDateString(),
-            status: (
-              <span
-                className={
-                  delegator.is_delegated ? "text-green-500" : "text-red-500"
-                }
-              >
-                {delegator.is_delegated ? "Active" : "Inactive"}
-              </span>
-            ),
-          }))}
+          data={delegatorsList.map((delegator) => {
+            const delegatorTvs = parseFloat(delegator.total_tvs || "0");
+            const percentage =
+              operatorTotalTvs > 0
+                ? (delegatorTvs / operatorTotalTvs) * 100
+                : 0;
+
+            return {
+              ...delegator,
+              staker_address: formatAddress(delegator.staker_address),
+              total_tvs: formatUSD(delegatorTvs),
+              shares_percentage: `${percentage.toFixed(4)}%`,
+              strategies_count: `${delegator.strategies.length} Strategies`,
+              delegated_at: new Date(
+                delegator.delegated_at,
+              ).toLocaleDateString(),
+              status: (
+                <span
+                  className={
+                    delegator.is_delegated ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {delegator.is_delegated ? "Active" : "Inactive"}
+                </span>
+              ),
+            };
+          })}
           tableFilters={{ title: "Delegator List" }}
           paginationProps={{
             pagination: {
@@ -90,7 +105,7 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
               setLimit(newLimit);
               setOffset(0);
             },
-            isLoading,
+            isLoading: isDelegatorsLoading,
           }}
         />
       </SectionContainer>
