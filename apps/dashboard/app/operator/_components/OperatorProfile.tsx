@@ -354,7 +354,7 @@ const OperatorProfile = () => {
         <TabsList className="grid w-full grid-cols-7 bg-muted/50 text-foreground">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          <TabsTrigger value="avs">AVS</TabsTrigger>
+          {/* <TabsTrigger value="avs">AVS</TabsTrigger> */}
           <TabsTrigger value="delegators">Delegators</TabsTrigger>
           <TabsTrigger value="allocations">Allocations</TabsTrigger>
           <TabsTrigger value="commission">Commission</TabsTrigger>
@@ -371,6 +371,7 @@ const OperatorProfile = () => {
 
         {/* <TabsContent value="avs">
           <AVSTab operatorId={operatorId} />
+
         </TabsContent> */}
 
         <TabsContent value="delegators">
