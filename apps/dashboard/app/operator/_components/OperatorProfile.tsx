@@ -132,8 +132,6 @@ const OperatorProfile = () => {
     );
   }
 
-  console.log({ operator });
-
   return (
     <div className="h-full py-[45px] space-y-4">
       {/* Header Section */}
@@ -354,7 +352,7 @@ const OperatorProfile = () => {
         <TabsList className="grid w-full grid-cols-7 bg-muted/50 text-foreground">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          {/* <TabsTrigger value="avs">AVS</TabsTrigger> */}
+          <TabsTrigger value="avs">AVS</TabsTrigger>
           <TabsTrigger value="delegators">Delegators</TabsTrigger>
           <TabsTrigger value="allocations">Allocations</TabsTrigger>
           <TabsTrigger value="commission">Commission</TabsTrigger>
@@ -369,10 +367,9 @@ const OperatorProfile = () => {
           <StrategiesTab operatorId={operatorId} />
         </TabsContent>
 
-        {/* <TabsContent value="avs">
+        <TabsContent value="avs">
           <AVSTab operatorId={operatorId} />
-
-        </TabsContent> */}
+        </TabsContent>
 
         <TabsContent value="delegators">
           <DelegatorsTab operatorId={operatorId} />

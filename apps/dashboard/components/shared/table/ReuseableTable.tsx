@@ -177,16 +177,16 @@ const ReusableTable = ({
                 <div key={index} className="flex flex-col gap-[24px]">
                   {/* mobile card */}
                   <div
-                    className="flex flex-col gap-[13px] relative cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+                    className="flex flex-col gap-[13px] relative cursor-pointer hover:bg-muted/50 p-4 rounded-lg transition-colors"
                     onClick={() => handleRowClick(mobileCard.raw)}
                   >
                     {/* Row fields */}
                     {mobileCard.fields.map((field, idx) => (
                       <div className="flex w-full justify-between" key={idx}>
-                        <BodySix className="text-[#949CA9] font-[500]">
+                        <BodySix className="text-muted-foreground font-[500]">
                           {field.label}
                         </BodySix>
-                        <BodySix className="text-[#282828]">
+                        <BodySix className="text-foreground">
                           {field.value}
                         </BodySix>
                       </div>
@@ -218,20 +218,20 @@ const ReusableTable = ({
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="w-full overflow-x-auto border-[1.33px] rounded-[14px] border-[#27272A80]">
+          <div className="w-full overflow-x-auto border rounded-[14px] border-border">
             <table className="w-full">
-              <thead className="bg-[#18181BB2]">
+              <thead className="bg-muted/70">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr
                     key={headerGroup.id}
-                    className="border-b-[1.33px] border-[#27272A80] h-[52px]"
+                    className="border-b border-border h-[52px]"
                   >
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         className="text-left h-[48px] px-[24px] py-[16px] whitespace-nowrap min-w-[100px]"
                       >
-                        <span className="text-[#9F9FA9] font-[600] text-[14px]">
+                        <span className="text-muted-foreground font-[600] text-[14px]">
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
@@ -239,7 +239,7 @@ const ReusableTable = ({
                         </span>
                       </th>
                     ))}
-                    {currentTab.onRowClick ? <div></div> : <></>}
+                    {currentTab.onRowClick ? <th></th> : null}
                   </tr>
                 ))}
               </thead>
@@ -253,7 +253,7 @@ const ReusableTable = ({
                       transition={{ duration: 0.2 }}
                     >
                       <td colSpan={columns.length} className="text-center py-6">
-                        <ClipLoader size={30} color="#030e72dd" />
+                        <ClipLoader size={30} color="hsl(var(--primary))" />
                       </td>
                     </motion.tr>
                   ) : (
@@ -264,7 +264,7 @@ const ReusableTable = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t-[1.33px] border-[#27272A4D] hover:bg-[#27272A]/5 cursor-pointer"
+                        className="border-t border-border/50 hover:bg-muted/30 cursor-pointer"
                         onClick={() => handleRowClick(row.original)}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -272,7 +272,7 @@ const ReusableTable = ({
                             key={cell.id}
                             className="h-[65px] px-[24px] py-[16px] whitespace-nowrap"
                           >
-                            <div className="text-white text-[14px]">
+                            <div className="text-foreground text-[14px]">
                               {flexRender(
                                 cell.column.columnDef.cell,
                                 cell.getContext()
@@ -284,9 +284,8 @@ const ReusableTable = ({
                           <td className="h-[65px] py-[16px] whitespace-nowrap">
                             <div className="flex h-full my-auto">
                               <ChevronRight
-                                color="#52525C"
+                                className="my-auto text-muted-foreground"
                                 size={20}
-                                className="my-auto"
                               />
                             </div>
                           </td>
@@ -300,7 +299,7 @@ const ReusableTable = ({
               </tbody>
             </table>
             {currentTab.paginationProps && (
-              <div className="px-[24px] bg-[#18181BB2]">
+              <div className="px-[24px] bg-muted/70">
                 <Pagination {...currentTab.paginationProps} />
               </div>
             )}

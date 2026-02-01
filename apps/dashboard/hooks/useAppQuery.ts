@@ -58,7 +58,7 @@
 //         try {
 //           await refreshSession();
 //         } catch (err) {
-//           console.error("Session refresh failed:", err);
+//           console.log("Session refresh failed:", err);
 //           break;
 //         }
 
@@ -67,7 +67,7 @@
 
 //       // After 2 failed refreshes, logout and redirect
 //       if (res.errorCode === "UNAUTHORIZED" && retryCount >= 2) {
-//         console.error("Session refresh limit reached. Logging out...");
+//         console.log("Session refresh limit reached. Logging out...");
 //         toast.error("Session expired. Please log in again.");
 //         await logout();
 //         queryClient.clear();

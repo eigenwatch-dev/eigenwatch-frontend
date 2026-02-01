@@ -27,6 +27,6 @@ export async function clearAuthCookie() {
   try {
     (await cookies()).delete("access_token");
   } catch (error) {
-    console.error("Failed to delete access token cookie:", error);
+    console.log("Failed to delete access token cookie:", error);
   }
 }

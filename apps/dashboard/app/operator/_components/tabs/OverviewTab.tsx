@@ -3,10 +3,10 @@
 // components/operator/tabs/OverviewTab.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, TrendingUp } from "lucide-react";
+import { Activity, TrendingUp, Users, Shield, AlertCircle } from "lucide-react";
 import { useDailySnapshots } from "@/hooks/crud/useOperator";
 import { OperatorDetail } from "@/types/operator.types";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
@@ -14,12 +14,36 @@ import { MetricProgress } from "@/components/shared/data/MetricProgress";
 import { ActivityItem } from "@/components/shared/data/ActivityItem";
 import { AreaChart } from "@/components/shared/charts/AreaChart";
 import { LineChart } from "@/components/shared/charts/LineChart";
+import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
 
 import { useRiskAssessment } from "@/hooks/crud/useOperatorRisk";
 import { useOperatorActivity } from "@/hooks/crud/useOperator";
 
 interface OverviewTabProps {
   operator: OperatorDetail;
+}
+
+// Sample data to show ~30 points for better chart readability
+function sampleData<T>(data: T[], targetPoints: number = 30): T[] {
+  if (data.length <= targetPoints) return data;
+  const step = Math.ceil(data.length / targetPoints);
+  return data.filter((_, index) => index % step === 0);
+}
+
+// Format date based on data density
+function formatDateForChart(dateStr: string, isLongRange: boolean): string {
+  const date = new Date(dateStr);
+  if (isLongRange) {
+    // For longer ranges, show abbreviated month and day
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 const OverviewTab = ({ operator }: OverviewTabProps) => {
@@ -32,10 +56,11 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
   );
   const activity = activityData?.data?.data || [];
   const isLoading = loadingRisk || loadingActivity;
-  // Get last 30 days of snapshots
+
+  // Get last 6 months of snapshots
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
+  startDate.setMonth(startDate.getMonth() - 6);
 
   const { data: snapshotsData, isLoading: loadingSnapshots } =
     useDailySnapshots(operator?.operator_id, {
@@ -45,21 +70,46 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
     });
 
   const snapshots = snapshotsData?.snapshots || [];
-  
 
-  // Transform data for charts
-  const chartData = snapshots?.map((snapshot: any) => ({
-    date: new Date(snapshot.date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    }),
-    tvs: parseFloat(snapshot.tvs || "0") / 1e18,
-    delegators: snapshot.delegator_count,
-    avs: snapshot.active_avs_count,
-  }));
+  // Transform and sample data for charts
+  const chartData = useMemo(() => {
+    const transformed = snapshots.map((snapshot: any) => ({
+      date: formatDateForChart(snapshot.date, true),
+      fullDate: snapshot.date,
+      tvs: parseFloat(snapshot.tvs || snapshot.tvs_eth || "0") / 1e18,
+      tvs_usd: parseFloat(snapshot.tvs_usd || "0"),
+      delegators: snapshot.delegator_count || 0,
+      avs: snapshot.active_avs_count || 0,
+    }));
+
+    // Sample to ~30 points for better readability
+    return sampleData(transformed, 30);
+  }, [snapshots]);
+
+  // Check if we have meaningful TVS data
+  const hasTvsData = chartData.some(d => d.tvs > 0 || d.tvs_usd > 0);
+  const hasDelegatorData = chartData.some(d => d.delegators > 0);
+  const hasAvsData = chartData.some(d => d.avs > 0);
+
+  // Calculate trends
+  const delegatorTrend = useMemo(() => {
+    if (chartData.length < 2) return null;
+    const first = chartData[0]?.delegators || 0;
+    const last = chartData[chartData.length - 1]?.delegators || 0;
+    if (first === 0) return null;
+    return ((last - first) / first * 100).toFixed(1);
+  }, [chartData]);
+
+  const avsTrend = useMemo(() => {
+    if (chartData.length < 2) return null;
+    const first = chartData[0]?.avs || 0;
+    const last = chartData[chartData.length - 1]?.avs || 0;
+    if (first === 0) return null;
+    return ((last - first) / first * 100).toFixed(1);
+  }, [chartData]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Performance Overview & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Performance Scores */}
@@ -74,31 +124,25 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               ))}
             </div>
           ) : (
-            <div className="space-y-3 text-sm ">
+            <div className="space-y-3 text-sm">
               {/* Risk Score */}
               <MetricProgress
                 metric="Risk Score"
-                value={Number(riskData?.scores.risk) || 0}
+                value={Number(riskData?.scores?.risk) || 0}
               />
 
-              {/* Mock Additional Scores - Replace with real data when available */}
-              <div className="pt-3 space-y-3 border-t border-white/10">
+              <div className="pt-3 space-y-3 border-t border-border">
                 <MetricProgress
                   metric="Performance Score"
-                  value={
-                    Number(riskData?.scores.performance) || 0
-                  }
+                  value={Number(riskData?.scores?.performance) || 0}
                 />
                 <MetricProgress
                   metric="Economic Score"
-                  value={Number(riskData?.scores.economic) || 0}
+                  value={Number(riskData?.scores?.economic) || 0}
                 />
                 <MetricProgress
                   metric="Network Position"
-                  value={
-                    Number(riskData?.scores.network_position) ||
-                    0
-                  }
+                  value={Number(riskData?.scores?.network_position) || 0}
                 />
               </div>
 
@@ -106,13 +150,13 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               <div className="pt-3 space-y-3 border-t border-border">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Confidence Score</span>
-                  <Badge className="bg-transparent text-muted-foreground">
-                    {riskData?.scores.confidence}%
+                  <Badge variant="outline" className="text-muted-foreground">
+                    {riskData?.scores?.confidence || 0}%
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Delegation Volatility</span>
-                  <Badge className="text-green-500 bg-transparent">
+                  <Badge variant="outline" className="text-green-500 border-green-500/30">
                     Stable
                   </Badge>
                 </div>
@@ -147,8 +191,8 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               ))}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground my-auto">
-              <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+              <Activity className="h-12 w-12 mb-2 opacity-50" />
               <p className="text-sm">No recent activity</p>
             </div>
           )}
@@ -156,26 +200,30 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
       </div>
 
       {/* TVS Trend Chart */}
-      <SectionContainer heading="Total Value Secured - Last 30 Days">
+      <SectionContainer
+        heading="Total Value Secured - 6 Month Trend"
+        info={EDUCATIONAL_TOOLTIPS.tvs.detailed}
+      >
         {loadingSnapshots ? (
-          <div className="h-64 flex items-center justify-center">
+          <div className="h-[300px] flex items-center justify-center">
             <Skeleton className="h-full w-full" />
           </div>
-        ) : chartData.length > 0 ? (
+        ) : hasTvsData && chartData.length > 0 ? (
           <AreaChart
             data={chartData}
             index="date"
             categories={["tvs"]}
-            colors={["hsl(var(--primary))"]}
-            valueFormatter={(value) => `${value.toFixed(2)} ETH`}
+            colors={["hsl(var(--chart-1))"]}
+            valueFormatter={(value) => `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ETH`}
             height={300}
           />
         ) : (
-          <div className="h-64 flex items-center justify-center text-muted-foreground my-auto">
-            <div className="text-center">
-              <TrendingUp className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">
-                No data available for the selected period
+          <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-lg border border-dashed border-border">
+            <div className="text-center p-6">
+              <AlertCircle className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
+              <p className="text-sm font-medium text-muted-foreground">TVS Historical Data Not Available</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Historical TVS tracking is being implemented. Current TVS is shown in the header.
               </p>
             </div>
           </div>
@@ -185,42 +233,95 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
       {/* Delegator & AVS Growth */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Delegators Trend */}
-        <SectionContainer heading="Delegators Growth">
+        <SectionContainer
+          heading="Delegators Over Time"
+          info="Number of unique addresses delegating to this operator over time"
+        >
           {loadingSnapshots ? (
-            <Skeleton className="h-48 w-full" />
-          ) : chartData.length > 0 ? (
-            <LineChart
-              data={chartData}
-              index="date"
-              categories={["delegators"]}
-              colors={["hsl(var(--chart-2))"]}
-              height={200}
-            />
+            <Skeleton className="h-[220px] w-full" />
+          ) : hasDelegatorData && chartData.length > 0 ? (
+            <div className="space-y-2">
+              {/* Trend indicator */}
+              <div className="flex items-center justify-between text-sm px-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span>Current: {chartData[chartData.length - 1]?.delegators || 0}</span>
+                </div>
+                {delegatorTrend && (
+                  <Badge
+                    variant="outline"
+                    className={parseFloat(delegatorTrend) >= 0 ? "text-green-500 border-green-500/30" : "text-red-500 border-red-500/30"}
+                  >
+                    {parseFloat(delegatorTrend) >= 0 ? "+" : ""}{delegatorTrend}%
+                  </Badge>
+                )}
+              </div>
+              <LineChart
+                data={chartData}
+                index="date"
+                categories={["delegators"]}
+                colors={["hsl(var(--chart-2))"]}
+                height={200}
+              />
+            </div>
           ) : (
-            <div className="h-48 flex items-center justify-center text-muted-foreground my-auto text-sm">
-              No data available
+            <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm bg-muted/30 rounded-lg">
+              No delegator data available
             </div>
           )}
         </SectionContainer>
 
         {/* AVS Count Trend */}
-        <SectionContainer heading="AVS Registrations">
+        <SectionContainer
+          heading="AVS Registrations Over Time"
+          info={EDUCATIONAL_TOOLTIPS.avs.short}
+        >
           {loadingSnapshots ? (
-            <Skeleton className="h-48 w-full" />
-          ) : chartData.length > 0 ? (
-            <LineChart
-              data={chartData}
-              index="date"
-              categories={["avs"]}
-              colors={["hsl(var(--chart-3))"]}
-              height={200}
-            />
+            <Skeleton className="h-[220px] w-full" />
+          ) : hasAvsData && chartData.length > 0 ? (
+            <div className="space-y-2">
+              {/* Trend indicator */}
+              <div className="flex items-center justify-between text-sm px-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Shield className="h-4 w-4" />
+                  <span>Current: {chartData[chartData.length - 1]?.avs || 0} AVS</span>
+                </div>
+                {avsTrend && (
+                  <Badge
+                    variant="outline"
+                    className={parseFloat(avsTrend) >= 0 ? "text-green-500 border-green-500/30" : "text-red-500 border-red-500/30"}
+                  >
+                    {parseFloat(avsTrend) >= 0 ? "+" : ""}{avsTrend}%
+                  </Badge>
+                )}
+              </div>
+              <LineChart
+                data={chartData}
+                index="date"
+                categories={["avs"]}
+                colors={["hsl(var(--chart-3))"]}
+                height={200}
+              />
+            </div>
           ) : (
-            <div className="h-48 flex items-center justify-center text-muted-foreground my-auto text-sm">
-              No data available
+            <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm bg-muted/30 rounded-lg">
+              No AVS data available
             </div>
           )}
         </SectionContainer>
+      </div>
+
+      {/* Educational note */}
+      <div className="p-4 rounded-lg bg-muted/50 border border-border">
+        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+          <span className="text-lg">📊</span>
+          Reading These Charts
+        </h4>
+        <p className="text-sm text-muted-foreground">
+          These charts show 6 months of historical data. Flat lines indicate stable metrics, which can be positive
+          (consistent delegator count) or may reflect limited data availability. Trend badges show percentage
+          change over the period.
+        </p>
       </div>
     </div>
   );

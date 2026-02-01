@@ -6,15 +6,23 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
-export function InfoTooltip({ info }: { info: string }) {
+interface InfoTooltipProps {
+  info: string;
+  detailed?: string;
+}
+
+export function InfoTooltip({ info, detailed }: InfoTooltipProps) {
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip delayDuration={300}>
         <TooltipTrigger className="">
-          <Info className="h-3 w-3 text-[#9F9FA9] cursor-help" />
+          <Info className="h-3 w-3 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
-          <p className="text-xs">{info}</p>
+          <p className="text-sm">{info}</p>
+          {detailed && (
+            <p className="text-xs text-muted-foreground mt-1">{detailed}</p>
+          )}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

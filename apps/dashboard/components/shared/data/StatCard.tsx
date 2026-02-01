@@ -45,7 +45,7 @@ export const StatCard = ({
           </div>
         </div>
         <div className="flex ">
-          <p className="text-[26px] text-foreground font-[500]">{value}</p>
+          <div className="text-[26px] text-foreground font-[500]">{value}</div>
         </div>
         {subtitle && (
           <div className="text-[14px] text-muted-foreground flex w-full">
