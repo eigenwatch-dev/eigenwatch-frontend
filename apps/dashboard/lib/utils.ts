@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function handleError<T = any>(
   error: any,
-  isErrResponse?: boolean
+  isErrResponse?: boolean,
 ): AppApiResponse<ApiResponse<T>> {
   const safeResponse = error?.response
     ? {
@@ -23,7 +23,7 @@ export function handleError<T = any>(
       }
     : error?.message || "Unknown error";
 
-  console.error("API Error:", JSON.stringify(safeResponse, null, 2));
+  console.log("API Error:", JSON.stringify(safeResponse, null, 2));
 
   const errorCode = safeResponse?.data?.error?.errorCode;
   let message: string =
@@ -48,7 +48,7 @@ export function handleError<T = any>(
 
 export function handleSuccess<T = any>(
   data: any,
-  message?: string
+  message?: string,
 ): AppApiResponse<ApiResponse<T>> {
   return {
     success: true,
@@ -83,19 +83,19 @@ export function deepMerge(target: any, source: any) {
 
 export function serializeParams(params: Record<string, any>): string {
   if (!params) return "";
-  
+
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
-    
+
     if (Array.isArray(value)) {
-      value.forEach(item => searchParams.append(key, String(item)));
+      value.forEach((item) => searchParams.append(key, String(item)));
     } else {
       searchParams.append(key, String(value));
     }
   });
-  
+
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : "";
 }

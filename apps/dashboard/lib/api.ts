@@ -17,14 +17,14 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Request Failed:", {
+    console.log("API Request Failed:", {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       message: error.message,
     });
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

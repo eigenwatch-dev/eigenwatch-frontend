@@ -21,13 +21,14 @@ export const formatEther = (weiValue: string | number): string => {
 /**
  * Format USD value with proper notation
  */
-export const formatUSD = (value: number): string => {
-  if (value === 0) return "$0";
-  if (value < 0.01) return "<$0.01";
-  if (value < 1000) return `$${value.toFixed(2)}`;
-  if (value < 1000000) return `$${(value / 1000).toFixed(1)}K`;
-  if (value < 1000000000) return `$${(value / 1000000).toFixed(1)}M`;
-  return `$${(value / 1000000000).toFixed(1)}B`;
+export const formatUSD = (value: number | string | null | undefined): string => {
+  const numValue = typeof value === "string" ? parseFloat(value) : (value ?? 0);
+  if (!numValue || isNaN(numValue) || numValue === 0) return "$0";
+  if (numValue < 0.01) return "<$0.01";
+  if (numValue < 1000) return `$${numValue.toFixed(2)}`;
+  if (numValue < 1000000) return `$${(numValue / 1000).toFixed(1)}K`;
+  if (numValue < 1000000000) return `$${(numValue / 1000000).toFixed(1)}M`;
+  return `$${(numValue / 1000000000).toFixed(1)}B`;
 };
 
 /**

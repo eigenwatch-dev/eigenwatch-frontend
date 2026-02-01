@@ -1,6 +1,6 @@
-const prompts = require('prompts');
-const { spawn } = require('child_process');
-const net = require('net');
+const prompts = require("prompts");
+const { spawn } = require("child_process");
+const net = require("net");
 
 const APPS = {
   web: 3000,
@@ -11,14 +11,14 @@ const APPS = {
 async function checkPort(port) {
   return new Promise((resolve) => {
     const server = net.createServer();
-    server.once('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
         resolve(false);
       } else {
         resolve(false); // Treat other errors as unavailable for safety
       }
     });
-    server.once('listening', () => {
+    server.once("listening", () => {
       server.close();
       resolve(true);
     });
@@ -40,15 +40,15 @@ async function run() {
 
   if (!app) {
     const response = await prompts({
-      type: 'select',
-      name: 'value',
-      message: 'Select an application to run',
+      type: "select",
+      name: "value",
+      message: "Select an application to run",
       choices: [
-        { title: 'Web (default port 3000)', value: 'web' },
-        { title: 'Docs (default port 3001)', value: 'docs' },
-        { title: 'Dashboard (default port 3002)', value: 'dashboard' },
+        { title: "Web (default port 3000)", value: "web" },
+        { title: "Docs (default port 3001)", value: "docs" },
+        { title: "Dashboard (default port 3002)", value: "dashboard" },
       ],
-      initial: 0
+      initial: 0,
     });
 
     app = response.value;
@@ -57,13 +57,13 @@ async function run() {
   if (app) {
     const defaultPort = APPS[app];
     if (!defaultPort) {
-      console.error(`Unknown app: ${app}`);
+      console.log(`Unknown app: ${app}`);
       process.exit(1);
     }
 
     let port = defaultPort;
     const isAvailable = await checkPort(port);
-    
+
     if (!isAvailable) {
       console.log(`Port ${port} is in use.`);
       port = await findAvailablePort(port + 1);
@@ -71,19 +71,31 @@ async function run() {
     }
 
     console.log(`Starting ${app} on port ${port}...`);
-    
+
     // We pass the port as an argument to the underlying command.
     // Next.js accepts the last --port argument if multiple are provided.
-    const child = spawn('npx', ['turbo', 'run', 'dev', `--filter=${app}`, '--', '--port', port.toString()], {
-      stdio: 'inherit',
-      shell: true
-    });
+    const child = spawn(
+      "npx",
+      [
+        "turbo",
+        "run",
+        "dev",
+        `--filter=${app}`,
+        "--",
+        "--port",
+        port.toString(),
+      ],
+      {
+        stdio: "inherit",
+        shell: true,
+      },
+    );
 
-    child.on('close', (code) => {
+    child.on("close", (code) => {
       process.exit(code);
     });
   } else {
-    console.log('No application selected.');
+    console.log("No application selected.");
   }
 }
 
