@@ -21,7 +21,13 @@ import {
 } from "@/lib/commission.utils";
 import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
 import { formatDistanceToNow } from "date-fns";
-import { Percent, TrendingDown, TrendingUp, Scale, DollarSign } from "lucide-react";
+import {
+  Percent,
+  TrendingDown,
+  TrendingUp,
+  Scale,
+  DollarSign,
+} from "lucide-react";
 
 interface CommissionTabProps {
   operatorId: string;
@@ -75,9 +81,12 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
 
   // Calculate comparison to median
   const medianCommission = benchmarks?.median_pi_commission_bips || 0;
-  const comparisonToMedian = medianCommission > 0
-    ? ((piCommission - medianCommission) / medianCommission * 100).toFixed(1)
-    : 0;
+  const comparisonToMedian =
+    medianCommission > 0
+      ? (((piCommission - medianCommission) / medianCommission) * 100).toFixed(
+          1,
+        )
+      : 0;
   const isAboveMedian = piCommission > medianCommission;
 
   return (
@@ -125,8 +134,11 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
               ) : (
                 <TrendingDown className="h-5 w-5 text-green-500" />
               )}
-              <span className={isAboveMedian ? "text-orange-500" : "text-green-500"}>
-                {isAboveMedian ? "+" : ""}{comparisonToMedian}%
+              <span
+                className={isAboveMedian ? "text-orange-500" : "text-green-500"}
+              >
+                {isAboveMedian ? "+" : ""}
+                {comparisonToMedian}%
               </span>
             </div>
           }
@@ -155,24 +167,35 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>This Operator</span>
-                <span className="font-medium">{formatCommission(piCommission)}</span>
+                <span className="font-medium">
+                  {formatCommission(piCommission)}
+                </span>
               </div>
-              <Progress value={Math.min(piCommission / 100, 100)} className="h-3" />
+              <Progress
+                value={Math.min(piCommission / 100, 100)}
+                className="h-3"
+              />
             </div>
 
             {/* Network Benchmarks */}
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Min</p>
-                <p className="font-medium">{formatCommission(benchmarks.min_pi_commission_bips || 0)}</p>
+                <p className="text-xs text-muted-foreground">25th Pctl</p>
+                <p className="font-medium">
+                  {formatCommission(benchmarks.p25_pi_commission_bips || 0)}
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Median</p>
-                <p className="font-medium">{formatCommission(benchmarks.median_pi_commission_bips || 0)}</p>
+                <p className="font-medium">
+                  {formatCommission(benchmarks.median_pi_commission_bips || 0)}
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Max</p>
-                <p className="font-medium">{formatCommission(benchmarks.max_pi_commission_bips || 0)}</p>
+                <p className="text-xs text-muted-foreground">75th Pctl</p>
+                <p className="font-medium">
+                  {formatCommission(benchmarks.p75_pi_commission_bips || 0)}
+                </p>
               </div>
             </div>
           </div>
@@ -199,7 +222,9 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
           <div className="text-center py-8 text-muted-foreground">
             <Percent className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>No AVS-specific commissions found</p>
-            <p className="text-sm mt-1">The PI commission applies to all AVS registrations.</p>
+            <p className="text-sm mt-1">
+              The PI commission applies to all AVS registrations.
+            </p>
           </div>
         )}
       </SectionContainer>
@@ -214,8 +239,10 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
           {EDUCATIONAL_TOOLTIPS.commission.detailed}
         </p>
         <p className="text-sm text-muted-foreground">
-          Commission hierarchy: <strong>Operator Set</strong> &gt; <strong>AVS</strong> &gt; <strong>PI (Protocol-wide)</strong>.
-          If an AVS or Operator Set has a specific rate, it overrides the PI commission.
+          Commission hierarchy: <strong>Operator Set</strong> &gt;{" "}
+          <strong>AVS</strong> &gt; <strong>PI (Protocol-wide)</strong>. If an
+          AVS or Operator Set has a specific rate, it overrides the PI
+          commission.
         </p>
       </div>
     </div>
