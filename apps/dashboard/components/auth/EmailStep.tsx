@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { addEmail } from "@/lib/auth-api";
 
 export function EmailStep() {
-  const { accessToken, setAuthStep, closeAuthModal } = useAuthStore();
+  const { user, setAuthStep, closeAuthModal, setUser } = useAuthStore();
   const [email, setEmail] = useState("");
   const [riskAlerts, setRiskAlerts] = useState(false);
   const [productUpdates, setProductUpdates] = useState(false);
@@ -21,16 +25,33 @@ export function EmailStep() {
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   async function handleSubmit() {
-    if (!accessToken || !isValidEmail) return;
+    if (!isValidEmail) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await addEmail(accessToken, email, {
+      const response = await addEmail(email, {
         risk_alerts: riskAlerts,
         marketing: productUpdates,
       });
+
+      // Manually update local user state with the new unverified email
+      if (user) {
+        const newEmail = {
+          id: response.email_id,
+          email: email,
+          is_verified: false,
+          is_primary: false,
+          created_at: new Date().toISOString(),
+        };
+
+        setUser({
+          ...user,
+          emails: [...(user.emails || []), newEmail],
+        });
+      }
+
       setAuthStep("verify");
     } catch {
       setError("Failed to add email. Please try again.");
@@ -68,9 +89,7 @@ export function EmailStep() {
             <Checkbox
               id="risk-alerts"
               checked={riskAlerts}
-              onCheckedChange={(checked) =>
-                setRiskAlerts(checked === true)
-              }
+              onCheckedChange={(checked) => setRiskAlerts(checked === true)}
               className="mt-0.5"
             />
             <Label
@@ -85,9 +104,7 @@ export function EmailStep() {
             <Checkbox
               id="product-updates"
               checked={productUpdates}
-              onCheckedChange={(checked) =>
-                setProductUpdates(checked === true)
-              }
+              onCheckedChange={(checked) => setProductUpdates(checked === true)}
               className="mt-0.5"
             />
             <Label
@@ -100,9 +117,7 @@ export function EmailStep() {
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive text-center">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive text-center">{error}</p>}
 
       <div className="space-y-3">
         <Button

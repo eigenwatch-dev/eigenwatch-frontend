@@ -20,7 +20,7 @@ const DEFAULT_PREFS: UserPreferences = {
 };
 
 export function NotificationsSection() {
-  const { user, accessToken } = useAuthStore();
+  const { user } = useAuthStore();
   const { isFree } = useProAccess();
   const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFS);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ export function NotificationsSection() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await getPreferences(accessToken);
+        const data = await getPreferences();
         if (!cancelled) setPrefs(data);
       } catch {
         // Use defaults
@@ -44,7 +44,7 @@ export function NotificationsSection() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken]);
+  }, []);
 
   const handleToggle = (key: keyof UserPreferences) => {
     setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -54,7 +54,7 @@ export function NotificationsSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updatePreferences(prefs, accessToken);
+      await updatePreferences(prefs);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {

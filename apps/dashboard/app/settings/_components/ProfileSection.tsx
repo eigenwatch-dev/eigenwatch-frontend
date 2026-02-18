@@ -6,7 +6,7 @@ import { updateProfile } from "@/lib/auth-api";
 import { Copy, CheckCircle2 } from "lucide-react";
 
 export function ProfileSection() {
-  const { user, accessToken, setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [displayName, setDisplayName] = useState(user?.display_name || "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -26,7 +26,7 @@ export function ProfileSection() {
     if (!hasChanges) return;
     setSaving(true);
     try {
-      const updated = await updateProfile(accessToken || "", {
+      const updated = await updateProfile({
         display_name: displayName || undefined,
       });
       setUser(updated);

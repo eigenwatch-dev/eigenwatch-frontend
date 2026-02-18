@@ -22,7 +22,7 @@ import {
 import { UserEmail } from "@/types/auth.types";
 
 export function EmailsSection() {
-  const { user, accessToken, setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [newEmail, setNewEmail] = useState("");
   const [addingEmail, setAddingEmail] = useState(false);
   const [verifyingEmailId, setVerifyingEmailId] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function EmailsSection() {
 
   const refreshUser = async () => {
     try {
-      const updated = await getMe(accessToken);
+      const updated = await getMe();
       setUser(updated);
     } catch {
       // Silently fail
@@ -51,45 +51,51 @@ export function EmailsSection() {
     setError("");
     setAddingEmail(true);
     try {
-      await addEmail(newEmail, accessToken);
+      await addEmail(newEmail);
       await refreshUser();
       setNewEmail("");
       // Auto-open verification for the newly added email
-      const updatedUser = await getMe(accessToken);
+      const updatedUser = await getMe();
       setUser(updatedUser);
       const added = updatedUser.emails?.find(
-        (e: UserEmail) => e.email === newEmail && !e.is_verified
+        (e: UserEmail) => e.email === newEmail && !e.is_verified,
       );
       if (added) {
         setVerifyingEmailId(added.id);
         setVerifyCode(["", "", "", "", "", ""]);
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to add email";
+      const message =
+        err instanceof Error ? err.message : "Failed to add email";
       setError(message);
     } finally {
       setAddingEmail(false);
     }
   };
 
-  const handleVerify = async () => {
-    const code = verifyCode.join("");
+  const handleVerify = async (codeOverride?: string) => {
+    const code = codeOverride || verifyCode.join("");
     if (code.length !== 6) return;
     setError("");
     try {
-      await verifyEmail(verifyingEmailId!, code, accessToken);
+      const emailAddr = emails.find((e) => e.id === verifyingEmailId)?.email;
+      if (!emailAddr) return;
+      await verifyEmail(emailAddr, code);
       await refreshUser();
       setVerifyingEmailId(null);
       setVerifyCode(["", "", "", "", "", ""]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid verification code";
+      const message =
+        err instanceof Error ? err.message : "Invalid verification code";
       setError(message);
     }
   };
 
   const handleResend = async (emailId: string) => {
     try {
-      await resendVerification(emailId, accessToken);
+      const emailAddr = emails.find((e) => e.id === emailId)?.email;
+      if (!emailAddr) return;
+      await resendVerification(emailAddr);
     } catch {
       // Silently fail
     }
@@ -98,10 +104,11 @@ export function EmailsSection() {
   const handleRemove = async (emailId: string) => {
     setRemovingId(emailId);
     try {
-      await removeEmail(emailId, accessToken);
+      await removeEmail(emailId);
       await refreshUser();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to remove email";
+      const message =
+        err instanceof Error ? err.message : "Failed to remove email";
       setError(message);
     } finally {
       setRemovingId(null);
@@ -110,7 +117,7 @@ export function EmailsSection() {
 
   const handleSetPrimary = async (emailId: string) => {
     try {
-      await setPrimaryEmail(emailId, accessToken);
+      await setPrimaryEmail(emailId);
       await refreshUser();
     } catch {
       // Silently fail
@@ -127,12 +134,15 @@ export function EmailsSection() {
     }
     // Auto-submit when all filled
     if (next.every((d) => d !== "") && next.join("").length === 6) {
-      setTimeout(() => handleVerify(), 100);
+      setTimeout(() => handleVerify(next.join("")), 100);
     }
   };
 
   const handleCodePaste = (e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (pasted.length === 6) {
       e.preventDefault();
       setVerifyCode(pasted.split(""));
@@ -247,10 +257,7 @@ export function EmailsSection() {
             <p className="text-sm text-foreground">
               Enter the 6-digit code sent to your email.
             </p>
-            <div
-              className="flex gap-2 justify-start"
-              onPaste={handleCodePaste}
-            >
+            <div className="flex gap-2 justify-start" onPaste={handleCodePaste}>
               {verifyCode.map((digit, i) => (
                 <input
                   key={i}
@@ -276,6 +283,15 @@ export function EmailsSection() {
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Cancel
+              </button>
+              <button
+                onClick={() => handleVerify()}
+                disabled={
+                  verifyCode.some((d) => !d) || verifyCode.join("").length !== 6
+                }
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3"
+              >
+                Verify
               </button>
               <button
                 onClick={() => handleResend(verifyingEmailId)}
@@ -316,7 +332,8 @@ export function EmailsSection() {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              You can add up to 3 email addresses. ({3 - emails.length} remaining)
+              You can add up to 3 email addresses. ({3 - emails.length}{" "}
+              remaining)
             </p>
           </div>
         )}

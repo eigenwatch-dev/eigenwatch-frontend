@@ -8,7 +8,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 
 export function DangerZone() {
   const router = useRouter();
-  const { accessToken, logout } = useAuthStore();
+  const { logout } = useAuthStore();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -17,7 +17,7 @@ export function DangerZone() {
     if (confirmText !== "DELETE") return;
     setDeleting(true);
     try {
-      await deleteAccount(accessToken);
+      await deleteAccount();
       logout();
       router.push("/");
     } catch {
@@ -31,9 +31,7 @@ export function DangerZone() {
     <div className="rounded-lg border border-red-500/20 bg-card">
       <div className="p-6 space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Danger Zone
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">Danger Zone</h2>
         </div>
 
         <div className="space-y-2">
@@ -59,8 +57,8 @@ export function DangerZone() {
               <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
               <p className="text-sm text-red-500">
                 This will permanently delete your account, email addresses,
-                preferences, and all session data. Type{" "}
-                <strong>DELETE</strong> to confirm.
+                preferences, and all session data. Type <strong>DELETE</strong>{" "}
+                to confirm.
               </p>
             </div>
             <input

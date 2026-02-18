@@ -3,14 +3,18 @@
 import { useState, useRef, useEffect } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { verifyEmail, resendVerification } from "@/lib/auth-api";
 
 const CODE_LENGTH = 6;
 
 export function VerifyStep() {
-  const { accessToken, user, closeAuthModal, setUser } = useAuthStore();
+  const { user, closeAuthModal, setUser } = useAuthStore();
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,12 +63,15 @@ export function VerifyStep() {
 
   function handlePaste(e: React.ClipboardEvent) {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, CODE_LENGTH);
     if (!pasted) return;
 
     const newCode = [...code];
     for (let i = 0; i < pasted.length; i++) {
-      newCode[i] = pasted[i];
+      newCode[i] = pasted[i] ?? "";
     }
     setCode(newCode);
 
@@ -78,17 +85,24 @@ export function VerifyStep() {
   }
 
   async function handleVerify(fullCode: string) {
-    if (!accessToken || !pendingEmail) return;
+    if (!pendingEmail) {
+      console.error("VerifyStep: No pending email found");
+      setError(
+        "No email address found to verify. Please try logging in again.",
+      );
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await verifyEmail(accessToken, pendingEmail, fullCode);
+      await verifyEmail(pendingEmail, fullCode);
       // Refresh user data to reflect verified email
       if (user) {
-        const updatedEmails = user.emails?.map((e) =>
-          e.email === pendingEmail ? { ...e, is_verified: true } : e
+        const currentEmails = user.emails || [];
+        const updatedEmails = currentEmails.map((e) =>
+          e.email === pendingEmail ? { ...e, is_verified: true } : e,
         );
         setUser({ ...user, emails: updatedEmails });
       }
@@ -103,10 +117,10 @@ export function VerifyStep() {
   }
 
   async function handleResend() {
-    if (!accessToken || !pendingEmail || resendCooldown > 0) return;
+    if (!pendingEmail || resendCooldown > 0) return;
 
     try {
-      await resendVerification(accessToken, pendingEmail);
+      await resendVerification(pendingEmail);
       setResendCooldown(60);
       setError(null);
     } catch {
@@ -136,7 +150,9 @@ export function VerifyStep() {
         {code.map((digit, i) => (
           <input
             key={i}
-            ref={(el) => { inputRefs.current[i] = el; }}
+            ref={(el) => {
+              inputRefs.current[i] = el;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -149,9 +165,7 @@ export function VerifyStep() {
         ))}
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive text-center">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive text-center">{error}</p>}
 
       <div className="text-center">
         <button

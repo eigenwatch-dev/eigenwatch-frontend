@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useAuthStore from "@/hooks/store/useAuthStore";
 import { getSessions, revokeSession, revokeAllSessions } from "@/lib/auth-api";
 import { UserSession } from "@/types/auth.types";
 import { Monitor, Loader2, X } from "lucide-react";
@@ -11,7 +10,8 @@ function parseUserAgent(ua?: string): string {
   const parts: string[] = [];
   if (ua.includes("Chrome") && !ua.includes("Edg")) parts.push("Chrome");
   else if (ua.includes("Firefox")) parts.push("Firefox");
-  else if (ua.includes("Safari") && !ua.includes("Chrome")) parts.push("Safari");
+  else if (ua.includes("Safari") && !ua.includes("Chrome"))
+    parts.push("Safari");
   else if (ua.includes("Edg")) parts.push("Edge");
   else parts.push("Browser");
 
@@ -43,7 +43,6 @@ function timeAgo(dateStr: string): string {
 }
 
 export function SessionsSection() {
-  const { accessToken } = useAuthStore();
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -51,7 +50,7 @@ export function SessionsSection() {
 
   const fetchSessions = async () => {
     try {
-      const data = await getSessions(accessToken);
+      const data = await getSessions();
       setSessions(data);
     } catch {
       // Silently fail
@@ -63,12 +62,12 @@ export function SessionsSection() {
   useEffect(() => {
     fetchSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, []);
 
   const handleRevoke = async (sessionId: string) => {
     setRevokingId(sessionId);
     try {
-      await revokeSession(sessionId, accessToken);
+      await revokeSession(sessionId);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
     } catch {
       // Silently fail
@@ -80,7 +79,7 @@ export function SessionsSection() {
   const handleRevokeAll = async () => {
     setRevokingAll(true);
     try {
-      await revokeAllSessions(accessToken);
+      await revokeAllSessions();
       setSessions((prev) => prev.filter((s) => s.is_current));
     } catch {
       // Silently fail
@@ -125,14 +124,18 @@ export function SessionsSection() {
                         <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
                       )}
                       <span className="text-sm text-foreground">
-                        {session.is_current ? "Current Session" : parseUserAgent(session.user_agent)}
+                        {session.is_current
+                          ? "Current Session"
+                          : parseUserAgent(session.user_agent)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                       {session.is_current && (
                         <span>{parseUserAgent(session.user_agent)}</span>
                       )}
-                      <span>Last active: {timeAgo(session.last_active_at)}</span>
+                      <span>
+                        Last active: {timeAgo(session.last_active_at)}
+                      </span>
                       <span>IP: {maskIp(session.ip_address)}</span>
                     </div>
                   </div>

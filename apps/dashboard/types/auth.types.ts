@@ -41,7 +41,7 @@ export interface UserPreferences {
 export interface AuthTokens {
   access_token: string;
   token_type: string;
-  expires_in: number;
+  // expires_in: number;
 }
 
 export interface NonceResponse {
@@ -50,15 +50,11 @@ export interface NonceResponse {
 }
 
 export interface VerifyResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
+  tokens: AuthTokens;
   user: User;
 }
 
 export interface RefreshResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
+  tokens: AuthTokens;
   user: User;
 }
