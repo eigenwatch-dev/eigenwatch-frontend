@@ -7,6 +7,7 @@ interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isAuthenticating: boolean;
+  isRestoring: boolean;
   tier: AuthTier;
   showAuthModal: boolean;
   authStep: AuthStep;
@@ -15,6 +16,7 @@ interface AuthState {
   setUser: (user: User | null) => void;
   setAccessToken: (token: string | null) => void;
   setAuthenticating: (val: boolean) => void;
+  setRestoring: (val: boolean) => void;
   openAuthModal: () => void;
   closeAuthModal: () => void;
   setAuthStep: (step: AuthStep) => void;
@@ -43,8 +45,7 @@ const useAuthStore = create<AuthState>((set) => ({
 
   openAuthModal: () => set({ showAuthModal: true, authStep: "sign" }),
 
-  closeAuthModal: () =>
-    set({ showAuthModal: false, isAuthenticating: false }),
+  closeAuthModal: () => set({ showAuthModal: false, isAuthenticating: false }),
 
   setAuthStep: (authStep) => set({ authStep }),
 

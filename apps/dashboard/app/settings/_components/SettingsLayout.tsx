@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SettingsSidebar, SettingsSection } from "./SettingsSidebar";
 import { ProfileSection } from "./ProfileSection";
 import { EmailsSection } from "./EmailsSection";
@@ -9,8 +9,43 @@ import { SubscriptionSection } from "./SubscriptionSection";
 import { SessionsSection } from "./SessionsSection";
 import { DangerZone } from "./DangerZone";
 
+const VALID_SECTIONS: SettingsSection[] = [
+  "profile",
+  "emails",
+  "notifications",
+  "subscription",
+  "sessions",
+  "danger-zone",
+];
+
+function getHashSection(): SettingsSection {
+  if (typeof window === "undefined") return "profile";
+  const hash = window.location.hash.replace("#", "");
+  return VALID_SECTIONS.includes(hash as SettingsSection)
+    ? (hash as SettingsSection)
+    : "profile";
+}
+
 export function SettingsLayout() {
-  const [activeSection, setActiveSection] = useState<SettingsSection>("profile");
+  const [activeSection, setActiveSection] =
+    useState<SettingsSection>("profile");
+
+  // Read hash on mount
+  useEffect(() => {
+    setActiveSection(getHashSection());
+  }, []);
+
+  // Listen for browser back/forward
+  useEffect(() => {
+    const onHashChange = () => setActiveSection(getHashSection());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  const handleSectionChange = useCallback((section: SettingsSection) => {
+    window.location.hash = section;
+    setActiveSection(section);
+  }, []);
 
   return (
     <div className="py-[45px] space-y-6">
@@ -22,7 +57,10 @@ export function SettingsLayout() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        <SettingsSidebar active={activeSection} onChange={setActiveSection} />
+        <SettingsSidebar
+          active={activeSection}
+          onChange={handleSectionChange}
+        />
 
         <div className="flex-1 min-w-0 space-y-6">
           {activeSection === "profile" && <ProfileSection />}
@@ -30,8 +68,7 @@ export function SettingsLayout() {
           {activeSection === "notifications" && <NotificationsSection />}
           {activeSection === "subscription" && <SubscriptionSection />}
           {activeSection === "sessions" && <SessionsSection />}
-
-          <DangerZone />
+          {activeSection === "danger-zone" && <DangerZone />}
         </div>
       </div>
     </div>
