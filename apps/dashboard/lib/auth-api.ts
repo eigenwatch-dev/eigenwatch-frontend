@@ -8,13 +8,11 @@ import {
   UserPreferences,
 } from "@/types/auth.types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
+const BASE_URL = "";
 
 function authHeaders(accessToken?: string | null): HeadersInit {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    "x-api-key": API_KEY,
   };
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
@@ -28,7 +26,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
     throw new AuthApiError(
       body?.message || `Request failed with status ${res.status}`,
       res.status,
-      body
+      body,
     );
   }
   const json = await res.json();
@@ -49,7 +47,7 @@ export class AuthApiError extends Error {
 // ==================== AUTH ====================
 
 export async function getNonce(address: string): Promise<NonceResponse> {
-  const res = await fetch(`${BASE_URL}/api/v1/auth/nonce`, {
+  const res = await fetch(`${BASE_URL}/api/v1/auth/challenge`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ address }),
@@ -60,12 +58,12 @@ export async function getNonce(address: string): Promise<NonceResponse> {
 export async function verifySignature(
   address: string,
   signature: string,
-  message: string
+  nonce: string,
 ): Promise<VerifyResponse> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/verify`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ address, signature, message }),
+    body: JSON.stringify({ address, signature, nonce }),
     credentials: "include",
   });
   return handleResponse<VerifyResponse>(res);
@@ -102,7 +100,7 @@ export async function getMe(accessToken: string): Promise<User> {
 export async function addEmail(
   accessToken: string,
   email: string,
-  preferences?: { marketing: boolean; risk_alerts: boolean }
+  preferences?: { marketing: boolean; risk_alerts: boolean },
 ): Promise<{ message: string }> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/email/add`, {
     method: "POST",
@@ -116,7 +114,7 @@ export async function addEmail(
 export async function verifyEmail(
   accessToken: string,
   email: string,
-  code: string
+  code: string,
 ): Promise<{ message: string }> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/email/verify`, {
     method: "POST",
@@ -129,7 +127,7 @@ export async function verifyEmail(
 
 export async function resendVerification(
   accessToken: string,
-  email: string
+  email: string,
 ): Promise<{ message: string }> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/email/resend`, {
     method: "POST",
@@ -142,7 +140,7 @@ export async function resendVerification(
 
 export async function removeEmail(
   accessToken: string,
-  emailId: string
+  emailId: string,
 ): Promise<void> {
   await fetch(`${BASE_URL}/api/v1/auth/email/${emailId}`, {
     method: "DELETE",
@@ -153,7 +151,7 @@ export async function removeEmail(
 
 export async function setPrimaryEmail(
   accessToken: string,
-  emailId: string
+  emailId: string,
 ): Promise<void> {
   await fetch(`${BASE_URL}/api/v1/auth/email/${emailId}/primary`, {
     method: "PUT",
@@ -166,7 +164,7 @@ export async function setPrimaryEmail(
 
 export async function updateProfile(
   accessToken: string,
-  data: { display_name?: string }
+  data: { display_name?: string },
 ): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/v1/user/profile`, {
     method: "PUT",
@@ -180,7 +178,7 @@ export async function updateProfile(
 // ==================== PREFERENCES ====================
 
 export async function getPreferences(
-  accessToken: string
+  accessToken: string,
 ): Promise<UserPreferences> {
   const res = await fetch(`${BASE_URL}/api/v1/user/preferences`, {
     method: "GET",
@@ -192,7 +190,7 @@ export async function getPreferences(
 
 export async function updatePreferences(
   accessToken: string,
-  preferences: Partial<UserPreferences>
+  preferences: Partial<UserPreferences>,
 ): Promise<UserPreferences> {
   const res = await fetch(`${BASE_URL}/api/v1/user/preferences`, {
     method: "PUT",
@@ -205,9 +203,7 @@ export async function updatePreferences(
 
 // ==================== SESSIONS ====================
 
-export async function getSessions(
-  accessToken: string
-): Promise<UserSession[]> {
+export async function getSessions(accessToken: string): Promise<UserSession[]> {
   const res = await fetch(`${BASE_URL}/api/v1/user/sessions`, {
     method: "GET",
     headers: authHeaders(accessToken),
@@ -218,7 +214,7 @@ export async function getSessions(
 
 export async function revokeSession(
   accessToken: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<void> {
   await fetch(`${BASE_URL}/api/v1/user/sessions/${sessionId}`, {
     method: "DELETE",

@@ -3,11 +3,7 @@
 import * as React from "react";
 import { useConnect } from "wagmi";
 import { Loader2 } from "lucide-react";
-import {
-  WalletMetamask,
-  WalletRainbow,
-  WalletWalletConnect,
-} from "@web3icons/react";
+import { WalletMetamask, WalletWalletConnect } from "@web3icons/react";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +21,6 @@ interface ConnectWalletDialogProps {
 const WALLET_ICONS: Record<string, React.ReactNode> = {
   MetaMask: <WalletMetamask variant="branded" size={24} />,
   WalletConnect: <WalletWalletConnect variant="branded" size={24} />,
-  Rainbow: <WalletRainbow variant="branded" size={24} />,
 };
 
 export function ConnectWalletDialog({
@@ -44,7 +39,7 @@ export function ConnectWalletDialog({
   };
 
   // Prioritized wallets
-  const prioritizedConnectors = ["MetaMask", "WalletConnect", "Rainbow"];
+  const prioritizedConnectors = ["MetaMask", "WalletConnect"];
 
   // Filter and sort connectors based on name
   const filteredConnectors = connectors
@@ -63,7 +58,6 @@ export function ConnectWalletDialog({
   const getIcon = (name: string) => {
     if (name.includes("MetaMask")) return WALLET_ICONS.MetaMask;
     if (name.includes("WalletConnect")) return WALLET_ICONS.WalletConnect;
-    if (name.includes("Rainbow")) return WALLET_ICONS.Rainbow;
     return null;
   };
 

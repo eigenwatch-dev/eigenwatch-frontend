@@ -7,8 +7,6 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { EmailNudgeBanner } from "@/components/auth/EmailNudgeBanner";
 import { WalletButton } from "@/components/wallet/WalletButton";
 
-import { headers } from "next/headers";
-
 const navLinks = [
   { label: "Dashboard", href: "/" },
   { label: "Operator", href: "/operator" },
@@ -87,13 +85,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersObj = await headers();
-  const cookies = headersObj.get("cookie");
-
   return (
     <html lang="en" className="dark">
       <body className={`antialiased bg-background text-foreground`}>
-        <WalletProvider cookies={cookies}>
+        <WalletProvider>
           <AppProvider>
             <AuthProvider>
               <div className="flex flex-col w-full h-screen">

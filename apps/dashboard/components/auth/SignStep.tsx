@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useAccount, useDisconnect, useSignMessage } from "wagmi";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { getNonce, verifySignature } from "@/lib/auth-api";
 
@@ -29,9 +33,9 @@ export function SignStep() {
     setError(null);
 
     try {
-      const { message } = await getNonce(address);
+      const { message, nonce } = await getNonce(address);
       const signature = await signMessageAsync({ message });
-      const data = await verifySignature(address, signature, message);
+      const data = await verifySignature(address, signature, nonce);
 
       setAccessToken(data.access_token);
       setUser(data.user);
@@ -57,9 +61,7 @@ export function SignStep() {
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10 mb-2">
           <Shield className="h-6 w-6 text-blue-500" />
         </div>
-        <DialogTitle className="text-center">
-          Sign in to EigenWatch
-        </DialogTitle>
+        <DialogTitle className="text-center">Sign in to EigenWatch</DialogTitle>
         <DialogDescription className="text-center">
           Verify your wallet ownership by signing a message. This does not cost
           any gas or make a transaction.
@@ -72,16 +74,10 @@ export function SignStep() {
         </span>
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive text-center">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive text-center">{error}</p>}
 
       <div className="space-y-3">
-        <Button
-          className="w-full"
-          onClick={handleSign}
-          disabled={isLoading}
-        >
+        <Button className="w-full" onClick={handleSign} disabled={isLoading}>
           {isLoading ? "Waiting for signature..." : "Sign Message"}
         </Button>
 

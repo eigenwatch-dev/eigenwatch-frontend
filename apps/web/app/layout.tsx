@@ -5,7 +5,6 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { ThemeProvider } from "@/contexts/theme-context";
 import WalletProvider from "../../../packages/ui/src/providers/wallet";
-import { headers } from "next/headers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -86,16 +85,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersObj = await headers();
-  const cookies = headersObj.get("cookie");
-
   return (
     <html lang="en">
       <body
         className={`${inter.variable} ${outfit.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
-          <WalletProvider cookies={cookies}>
+          <WalletProvider>
             <Header />
             <main className="min-h-screen pt-16.25">{children}</main>
             <Footer />

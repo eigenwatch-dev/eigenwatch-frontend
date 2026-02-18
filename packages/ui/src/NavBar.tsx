@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AppKitButton } from "@reown/appkit/react";
 
 export interface NavLink {
   label: string;
