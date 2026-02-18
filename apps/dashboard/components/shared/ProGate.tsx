@@ -36,11 +36,19 @@ export function ProUpgradeCard({ feature, description }: ProUpgradeCardProps) {
   );
 }
 
+const BLUR_MAP = {
+  light: "blur-[2px]",
+  medium: "blur-sm",
+  heavy: "blur-md",
+} as const;
+
 interface ProGateProps {
   children: React.ReactNode;
   isLocked: boolean;
   feature: string;
   description?: string;
+  variant?: "overlay" | "inline";
+  blurIntensity?: "light" | "medium" | "heavy";
 }
 
 export function ProGate({
@@ -48,14 +56,28 @@ export function ProGate({
   isLocked,
   feature,
   description,
+  variant = "overlay",
+  blurIntensity = "medium",
 }: ProGateProps) {
   if (!isLocked) {
     return <>{children}</>;
   }
 
+  const blurClass = BLUR_MAP[blurIntensity];
+
+  if (variant === "inline") {
+    return (
+      <div className="relative">
+        <div className={`${blurClass} pointer-events-none select-none`}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
-      <div className="blur-sm pointer-events-none select-none">
+      <div className={`${blurClass} pointer-events-none select-none`}>
         {children}
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">

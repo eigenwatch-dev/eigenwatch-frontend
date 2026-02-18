@@ -3,6 +3,8 @@
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
+import { ProGate } from "@/components/shared/ProGate";
+import { useProAccess } from "@/hooks/useProAccess";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +36,7 @@ interface CommissionTabProps {
 }
 
 export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
+  const { isFree } = useProAccess();
   const { data: commission, isLoading } = useOperatorCommission(operatorId);
 
   if (isLoading) {
@@ -156,78 +159,85 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
         />
       </div>
 
-      {/* Commission Visualization */}
-      {benchmarks && (
-        <SectionContainer
-          heading="Commission Comparison"
-          info="Visual comparison of this operator's commission relative to network benchmarks"
-        >
-          <div className="space-y-4">
-            {/* PI Commission Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>This Operator</span>
-                <span className="font-medium">
-                  {formatCommission(piCommission)}
-                </span>
-              </div>
-              <Progress
-                value={Math.min(piCommission / 100, 100)}
-                className="h-3"
-              />
-            </div>
-
-            {/* Network Benchmarks */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">25th Pctl</p>
-                <p className="font-medium">
-                  {formatCommission(benchmarks.p25_pi_commission_bips || 0)}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Median</p>
-                <p className="font-medium">
-                  {formatCommission(benchmarks.median_pi_commission_bips || 0)}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">75th Pctl</p>
-                <p className="font-medium">
-                  {formatCommission(benchmarks.p75_pi_commission_bips || 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </SectionContainer>
-      )}
-
-      {/* Per-AVS Commissions */}
-      <SectionContainer
-        heading="Per-AVS Commissions"
-        info="Commission rates may vary by AVS. Some AVS networks set their own commission rates that override the operator's default PI commission."
+      {/* Commission Visualization & Per-AVS Commissions (Pro) */}
+      <ProGate
+        isLocked={isFree}
+        feature="Commission Behavior"
+        description="Unlock commission comparison charts, per-AVS commission breakdowns, and rate stability analysis to assess economic risk."
       >
-        {avsTableData.length > 0 ? (
-          <ReusableTable
-            columns={[
-              { key: "avs_name", displayName: "AVS" },
-              { key: "commission_rate", displayName: "Commission Rate" },
-              { key: "stability", displayName: "Stability" },
-              { key: "rate_age", displayName: "Rate Age" },
-            ]}
-            data={avsTableData}
-            tableFilters={{ title: "Per-AVS Commissions" }}
-          />
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Percent className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No AVS-specific commissions found</p>
-            <p className="text-sm mt-1">
-              The PI commission applies to all AVS registrations.
-            </p>
-          </div>
+        {/* Commission Visualization */}
+        {benchmarks && (
+          <SectionContainer
+            heading="Commission Comparison"
+            info="Visual comparison of this operator's commission relative to network benchmarks"
+          >
+            <div className="space-y-4">
+              {/* PI Commission Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>This Operator</span>
+                  <span className="font-medium">
+                    {formatCommission(piCommission)}
+                  </span>
+                </div>
+                <Progress
+                  value={Math.min(piCommission / 100, 100)}
+                  className="h-3"
+                />
+              </div>
+
+              {/* Network Benchmarks */}
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">25th Pctl</p>
+                  <p className="font-medium">
+                    {formatCommission(benchmarks.p25_pi_commission_bips || 0)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Median</p>
+                  <p className="font-medium">
+                    {formatCommission(benchmarks.median_pi_commission_bips || 0)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">75th Pctl</p>
+                  <p className="font-medium">
+                    {formatCommission(benchmarks.p75_pi_commission_bips || 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </SectionContainer>
         )}
-      </SectionContainer>
+
+        {/* Per-AVS Commissions */}
+        <SectionContainer
+          heading="Per-AVS Commissions"
+          info="Commission rates may vary by AVS. Some AVS networks set their own commission rates that override the operator's default PI commission."
+        >
+          {avsTableData.length > 0 ? (
+            <ReusableTable
+              columns={[
+                { key: "avs_name", displayName: "AVS" },
+                { key: "commission_rate", displayName: "Commission Rate" },
+                { key: "stability", displayName: "Stability" },
+                { key: "rate_age", displayName: "Rate Age" },
+              ]}
+              data={avsTableData}
+              tableFilters={{ title: "Per-AVS Commissions" }}
+            />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Percent className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>No AVS-specific commissions found</p>
+              <p className="text-sm mt-1">
+                The PI commission applies to all AVS registrations.
+              </p>
+            </div>
+          )}
+        </SectionContainer>
+      </ProGate>
 
       {/* Educational Note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
+import { ProGate } from "@/components/shared/ProGate";
+import { useProAccess } from "@/hooks/useProAccess";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatAddress, formatUSD } from "@/lib/formatting";
@@ -16,6 +18,7 @@ interface DelegatorsTabProps {
 }
 
 export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
+  const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(5);
 
@@ -56,6 +59,11 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
         />
       </div>
 
+      <ProGate
+        isLocked={isFree}
+        feature="Delegator List"
+        description="Unlock the full delegator list — see individual staker addresses, TVS amounts, stake percentages, and delegation history."
+      >
       <SectionContainer heading="Delegator List">
         <ReusableTable
           columns={[
@@ -109,6 +117,7 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
           }}
         />
       </SectionContainer>
+      </ProGate>
     </div>
   );
 };

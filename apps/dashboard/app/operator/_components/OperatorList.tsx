@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ListEntityView } from "@/components/shared/ListEntityView";
 import { TableColumnConfig } from "@/components/shared/table/ReuseableTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOperators } from "@/hooks/crud/useOperator";
 import { useRouter } from "next/navigation";
 import { Operator } from "@/types/operator.types";
+import { ProGateCell } from "@/components/shared/ProGateCell";
+import { useProAccess } from "@/hooks/useProAccess";
 
 const RISK_COLORS: Record<string, string> = {
   low: "text-green-500 bg-green-500/10 border-green-500/20",
@@ -50,6 +53,7 @@ export function OperatorList({
   initialPagination,
 }: OperatorListProps) {
   const router = useRouter();
+  const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(20);
 
@@ -79,11 +83,20 @@ export function OperatorList({
         columns: operatorsColumns,
         data: operatorData.map((operator) => ({
           ...operator,
+          risk_score: (
+            <ProGateCell
+              isLocked={isFree}
+              feature="Risk Score"
+              description="Unlock risk scores to evaluate operator safety before delegating."
+            >
+              <span className="font-medium tabular-nums">{operator.risk_score ?? "—"}</span>
+            </ProGateCell>
+          ),
           risk_level: (
             <RiskPill level={operator.risk_level} />
           ),
           operator: (
-            <div className="flex gap-[12px] ">
+            <div className="flex gap-[12px]">
               <Avatar className="w-[32px] h-[32px] rounded-[10px]">
                 <AvatarImage
                   src={operator?.metadata?.logo}
@@ -94,7 +107,13 @@ export function OperatorList({
                 </AvatarFallback>
               </Avatar>
               <div className="flex my-auto">
-                <span>{operator.metadata?.name || "Anonymous Op"}</span>
+                <Link
+                  href={`/operator/${operator.operator_id}`}
+                  className="text-foreground hover:text-blue-400 hover:underline transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {operator.metadata?.name || "Anonymous Op"}
+                </Link>
               </div>
             </div>
           ),

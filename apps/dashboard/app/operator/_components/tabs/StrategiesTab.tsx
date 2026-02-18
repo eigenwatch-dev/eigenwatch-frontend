@@ -9,6 +9,8 @@ import { Info, TrendingUp, PieChart } from "lucide-react";
 import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { DonutChart } from "@/components/shared/charts/DonutChart";
+import { ProGate } from "@/components/shared/ProGate";
+import { useProAccess } from "@/hooks/useProAccess";
 
 import { useOperatorStats } from "@/hooks/crud/useOperator";
 import { StrategyTVS } from "@/types/operator.types";
@@ -19,6 +21,7 @@ interface StrategiesTabProps {
 }
 
 const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
+  const { isFree } = useProAccess();
   const { data: statsData, isLoading } = useOperatorStats(operatorId);
 
   const strategies = statsData?.tvs.by_strategy || [];
@@ -165,6 +168,11 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
       </Card>
 
       {/* Strategies Table */}
+      <ProGate
+        isLocked={isFree}
+        feature="Strategy Details"
+        description="Unlock the full strategy table with exact amounts, share percentages, and delegator counts per strategy."
+      >
       <ReusableTable
         columns={[
           { key: "token", displayName: "Strategy" },
@@ -219,6 +227,7 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
         })}
         tableFilters={{ title: "All Strategies" }}
       />
+      </ProGate>
     </div>
   );
 };

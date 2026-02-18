@@ -29,6 +29,9 @@ import { StatCard } from "@/components/shared/data/StatCard";
 import { CardContainer } from "@/components/shared/data/CardContainer";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
 import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { ProBadge } from "@/components/shared/ProGate";
+import { ProGateCell } from "@/components/shared/ProGateCell";
+import { useProAccess } from "@/hooks/useProAccess";
 import { OperatorDetail, OperatorStats } from "@/types/operator.types";
 
 // Lazy-loaded tab imports
@@ -60,6 +63,7 @@ const OperatorProfile = ({
   initialStats,
 }: OperatorProfileProps) => {
   const queryClient = useQueryClient();
+  const { isFree } = useProAccess();
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
 
@@ -365,10 +369,16 @@ const OperatorProfile = ({
               heading="Risk Assessment"
               info="An overall risk assessment score. Higher scores indicate safer operators with better track records."
             />
-            <RiskBadge
-              level={riskData?.risk_level || "MEDIUM"}
-              score={riskData?.scores.risk.toString() || "---"}
-            />
+            <ProGateCell
+              isLocked={isFree}
+              feature="Risk Score"
+              description="Unlock detailed risk scores and assessments to evaluate operator safety before delegating."
+            >
+              <RiskBadge
+                level={riskData?.risk_level || "MEDIUM"}
+                score={riskData?.scores.risk.toString() || "---"}
+              />
+            </ProGateCell>
           </div>
 
           <div className="space-y-2">
@@ -460,7 +470,7 @@ const OperatorProfile = ({
             value="risk"
             onMouseEnter={() => handleTabHover("risk")}
           >
-            Risk Analysis
+            Risk Analysis <ProBadge />
           </TabsTrigger>
         </TabsList>
 

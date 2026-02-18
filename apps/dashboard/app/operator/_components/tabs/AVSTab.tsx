@@ -8,6 +8,8 @@ import { Shield, TrendingUp, CheckCircle2, Clock, Layers } from "lucide-react";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
+import { ProGate } from "@/components/shared/ProGate";
+import { useProAccess } from "@/hooks/useProAccess";
 import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
 import { formatUSD } from "@/lib/formatting";
 import { useOperatorAVS } from "@/hooks/crud/useAvs";
@@ -32,6 +34,7 @@ interface AVSRelationship {
 }
 
 export const AVSTab = ({ operatorId }: AVSTabProps) => {
+  const { isFree } = useProAccess();
   const { data: avsData, isLoading } = useOperatorAVS(operatorId);
   const avsList: AVSRelationship[] = avsData?.avs_relationships || [];
 
@@ -112,67 +115,73 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
       </div>
 
       {/* AVS Relationships Table */}
-      <SectionContainer
-        heading="AVS Relationships"
-        info="List of all AVS networks this operator is registered with. Each AVS may have different commission rates and allocation amounts."
+      <ProGate
+        isLocked={isFree}
+        feature="AVS Relationships"
+        description="Unlock the full AVS relationship table — see allocations, commissions, and operator sets per AVS to understand exposure and dependency risk."
       >
-        {tableData.length > 0 ? (
-          <ReusableTable
-            columns={[
-              { key: "avs_name", displayName: "AVS Name" },
-              {
-                key: "status",
-                displayName: "Status",
-              },
-              { key: "days_registered", displayName: "Days Active" },
-              { key: "operator_sets", displayName: "Operator Sets" },
-              { key: "allocated_usd", displayName: "Allocated (USD)" },
-              { key: "commission", displayName: "Commission" },
-            ]}
-            data={tableData}
-            tableFilters={{ title: "AVS Relationships" }}
-          />
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No AVS registrations found</p>
-            <p className="text-sm mt-1">This operator is not registered with any AVS yet.</p>
+        <SectionContainer
+          heading="AVS Relationships"
+          info="List of all AVS networks this operator is registered with. Each AVS may have different commission rates and allocation amounts."
+        >
+          {tableData.length > 0 ? (
+            <ReusableTable
+              columns={[
+                { key: "avs_name", displayName: "AVS Name" },
+                {
+                  key: "status",
+                  displayName: "Status",
+                },
+                { key: "days_registered", displayName: "Days Active" },
+                { key: "operator_sets", displayName: "Operator Sets" },
+                { key: "allocated_usd", displayName: "Allocated (USD)" },
+                { key: "commission", displayName: "Commission" },
+              ]}
+              data={tableData}
+              tableFilters={{ title: "AVS Relationships" }}
+            />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>No AVS registrations found</p>
+              <p className="text-sm mt-1">This operator is not registered with any AVS yet.</p>
+            </div>
+          )}
+        </SectionContainer>
+
+        {/* Summary Stats */}
+        {avsList.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-muted/50 border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Total Operator Sets</span>
+              </div>
+              <p className="text-2xl font-semibold">{totalOperatorSets}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Across {avsList.length} AVS{avsList.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-muted/50 border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Registration Status</span>
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="outline" className="text-green-500 bg-green-500/10">
+                  {registeredCount} Active
+                </Badge>
+                {avsList.length - registeredCount > 0 && (
+                  <Badge variant="outline" className="text-yellow-500 bg-yellow-500/10">
+                    {avsList.length - registeredCount} Inactive
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
         )}
-      </SectionContainer>
-
-      {/* Summary Stats */}
-      {avsList.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-muted/50 border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Layers className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Total Operator Sets</span>
-            </div>
-            <p className="text-2xl font-semibold">{totalOperatorSets}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Across {avsList.length} AVS{avsList.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-muted/50 border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Registration Status</span>
-            </div>
-            <div className="flex gap-2">
-              <Badge variant="outline" className="text-green-500 bg-green-500/10">
-                {registeredCount} Active
-              </Badge>
-              {avsList.length - registeredCount > 0 && (
-                <Badge variant="outline" className="text-yellow-500 bg-yellow-500/10">
-                  {avsList.length - registeredCount} Inactive
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      </ProGate>
 
       {/* Educational Note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">
