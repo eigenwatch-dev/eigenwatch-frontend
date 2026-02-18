@@ -17,6 +17,7 @@ export interface NavBarProps {
   logoHref?: string;
   navLinks?: NavLink[];
   activePath?: string;
+  walletConnect?: React.ReactNode;
 }
 
 const menuVariants = {
@@ -49,6 +50,7 @@ export function NavBar({
   logoHref = "/",
   navLinks = [],
   activePath,
+  walletConnect,
 }: NavBarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -103,7 +105,8 @@ export function NavBar({
         {/* Desktop Connect Button */}
         <div className="hidden md:flex my-auto">
           {/* <ConnectButton /> */}
-          <AppKitButton />
+          {/* <AppKitButton /> */}
+          {walletConnect}
         </div>
 
         {/* Mobile Menu Button */}
@@ -140,7 +143,8 @@ export function NavBar({
               <motion.div variants={itemVariants}>
                 <div className="mt-4">
                   {/* <ConnectButton /> */}
-                  <AppKitButton size="md" />
+                  {/* <AppKitButton size="md" /> */}
+                  {walletConnect}
                 </div>
               </motion.div>
             </div>

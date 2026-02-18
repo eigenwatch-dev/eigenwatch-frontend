@@ -7,7 +7,7 @@ import { createAppKit } from "@reown/appkit/react";
 import { mainnet, arbitrum } from "@reown/appkit/networks";
 import { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
-import { projectId, wagmiAdapter } from "../config/wallet";
+import { projectId, wagmiAdapter, config } from "../config/wallet";
 
 // Set up queryClient
 const queryClient = new QueryClient();
@@ -63,16 +63,10 @@ function WalletProvider({
   children: ReactNode;
   cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(
-    wagmiAdapter.wagmiConfig as Config,
-    cookies,
-  );
+  const initialState = cookieToInitialState(config as Config, cookies);
 
   return (
-    <WagmiProvider
-      config={wagmiAdapter.wagmiConfig as Config}
-      initialState={initialState}
-    >
+    <WagmiProvider config={config as Config} initialState={initialState}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );

@@ -1,13 +1,17 @@
-// packages/ui/src/config/wallet.tsx
-import { createStorage } from "@wagmi/core";
+import { createStorage, createConfig, http } from "wagmi";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { connectorsForWallets } from "@rainbow-me/rainbowkit";
+import {
+  metaMaskWallet,
+  rainbowWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import {
   mainnet,
   arbitrum,
   base,
   scroll,
   polygon,
-  solana,
   optimism,
 } from "@reown/appkit/networks";
 
@@ -17,15 +21,7 @@ if (!projectId) {
   throw new Error("Project ID is not defined");
 }
 
-export const networks = [
-  mainnet,
-  arbitrum,
-  base,
-  scroll,
-  polygon,
-  solana,
-  optimism,
-];
+export const networks = [mainnet, arbitrum, base, scroll, polygon, optimism];
 
 // Custom cookie storage to set domain dynamically for subdomain sharing and local dev
 const customCookieStorage = {
@@ -36,22 +32,6 @@ const customCookieStorage = {
       "";
     return value ? value : null;
   },
-  // setItem: (key: string, value: string) => {
-  //   if (typeof window === "undefined") return;
-  //   let cookieDomain = "";
-  //   const hostname = window.location.hostname;
-  //   if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-  //     const parts = hostname.split(".");
-  //     // For domains like app.com or dashboard.app.com, set to .app.com
-  //     cookieDomain = `domain=.${parts.slice(-2).join(".")};`;
-  //   } else {
-  //     // For localhost, set explicitly to localhost (no dot) to ensure sharing across ports
-  //     cookieDomain = "domain=localhost;";
-  //   }
-  //   // Use secure=true in production (requires HTTPS)
-  //   // SameSite=Lax allows sharing across subdomains/ports for top-level navigation
-  //   document.cookie = `${key}=${value}; ${cookieDomain} path=/; SameSite=Lax;${process.env.NODE_ENV === "production" ? " secure" : ""}`;
-  // },
 
   setItem: (key: string, value: string) => {
     if (typeof window === "undefined") return;
@@ -89,11 +69,34 @@ const customCookieStorage = {
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: customCookieStorage,
-    key: "shared-connector",
-  }),
+    key: "shared-connector" as any,
+  }) as any,
   ssr: true,
   projectId,
   networks,
 });
 
-export const config = wagmiAdapter.wagmiConfig;
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: "Recommended",
+      wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet],
+    },
+  ],
+  {
+    appName: "EigenWatch",
+    projectId,
+  },
+);
+
+// Explicitly add connectors to the wagmi config following Step 1 guidelines
+export const config = createConfig({
+  chains: networks as any,
+  storage: createStorage({
+    storage: customCookieStorage,
+    key: "shared-connector" as any,
+  }),
+  ssr: true,
+  connectors,
+  transports: Object.fromEntries(networks.map((chain) => [chain.id, http()])),
+});

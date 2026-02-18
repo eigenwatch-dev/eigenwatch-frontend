@@ -5,6 +5,7 @@ import { NavBar } from "@repo/ui/NavBar";
 import WalletProvider from "../../../packages/ui/src/providers/wallet";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { EmailNudgeBanner } from "@/components/auth/EmailNudgeBanner";
+import { WalletButton } from "@/components/wallet/WalletButton";
 
 import { headers } from "next/headers";
 
@@ -98,9 +99,11 @@ export default async function RootLayout({
               <div className="flex flex-col w-full h-screen">
                 <NavBar
                   logoHref={
-                    process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"
+                    process.env.NEXT_PUBLIC_WEBSITE_URL ||
+                    "http://localhost:3000"
                   }
                   navLinks={navLinks}
+                  walletConnect={<WalletButton />}
                 />
                 <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
                   <EmailNudgeBanner />
