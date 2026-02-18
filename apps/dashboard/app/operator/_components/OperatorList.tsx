@@ -8,6 +8,32 @@ import { useOperators } from "@/hooks/crud/useOperator";
 import { useRouter } from "next/navigation";
 import { Operator } from "@/types/operator.types";
 
+const RISK_COLORS: Record<string, string> = {
+  low: "text-green-500 bg-green-500/10 border-green-500/20",
+  medium: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
+  high: "text-orange-500 bg-orange-500/10 border-orange-500/20",
+  critical: "text-red-500 bg-red-500/10 border-red-500/20",
+};
+
+const RISK_DOT_COLORS: Record<string, string> = {
+  low: "bg-green-500",
+  medium: "bg-yellow-500",
+  high: "bg-orange-500",
+  critical: "bg-red-500",
+};
+
+function RiskPill({ level }: { level: string }) {
+  const key = level.toLowerCase();
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${RISK_COLORS[key] || RISK_COLORS.medium}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${RISK_DOT_COLORS[key] || RISK_DOT_COLORS.medium}`} />
+      {key}
+    </span>
+  );
+}
+
 interface OperatorListProps {
   initialData: Operator[];
   initialPagination?: {
@@ -54,29 +80,7 @@ export function OperatorList({
         data: operatorData.map((operator) => ({
           ...operator,
           risk_level: (
-            <button
-              className={
-                "flex py-[3px] w-[75px] rounded-[8px] " +
-                (operator.risk_level.toLowerCase() === "medium"
-                  ? "bg-blue-800/10"
-                  : operator.risk_level.toLowerCase() === "low"
-                  ? "bg-green-800/10"
-                  : "bg-red-800/10")
-              }
-            >
-              <span
-                className={
-                  "capitalize text-[12px] flex mx-auto " +
-                  (operator.risk_level.toLowerCase() === "medium"
-                    ? "text-blue-500"
-                    : operator.risk_level.toLowerCase() === "low"
-                    ? "text-green-500"
-                    : "text-red-500")
-                }
-              >
-                {operator.risk_level.toLowerCase()}
-              </span>
-            </button>
+            <RiskPill level={operator.risk_level} />
           ),
           operator: (
             <div className="flex gap-[12px] ">

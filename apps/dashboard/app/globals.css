@@ -42,6 +42,11 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-canvas-deep: var(--canvas-deep);
+  --color-surface-hover: var(--surface-hover);
+  --color-highlight-border: var(--highlight-border);
+  --color-text-label: var(--text-label);
+  --color-warning: var(--warning);
 }
 
 :root {
@@ -111,6 +116,19 @@
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: #FFFFFF1A;
   --sidebar-ring: #D4D4D8;
+
+  /* Design system additions */
+  --canvas-deep: #05060B;
+  --surface-hover: #161922;
+  --highlight-border: #374151;
+  --text-label: #6B7280;
+  --warning: #F59E0B;
+  --warning-dim: rgba(245, 158, 11, 0.1);
+  --success-dim: rgba(34, 197, 94, 0.1);
+  --danger-dim: rgba(239, 68, 68, 0.1);
+  --info-dim: rgba(59, 130, 246, 0.1);
+  --purple-brand: #A855F7;
+  --purple-dim: rgba(168, 85, 247, 0.1);
 }
 
 @layer base {
