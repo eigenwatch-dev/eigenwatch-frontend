@@ -16,6 +16,7 @@ export const useOperatorCommission = (id: string, enabled = true) => {
     queryFn: () => getOperatorCommission(id),
     enabled: enabled && !!id,
     select: (data) => data.data?.data,
+    staleTime: 5 * 60_000, // 5 minutes: changes rarely
   });
 };
 

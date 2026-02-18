@@ -8,7 +8,11 @@ import "react-toastify/dist/ReactToastify.css";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
+      staleTime: 60_000, // 1 minute: data considered "fresh"
+      gcTime: 5 * 60_000, // 5 minutes: keep in cache after unmount
+      refetchOnWindowFocus: false, // Don't refetch on tab switch
+      refetchOnMount: false, // Don't refetch if data exists and is fresh
+      retry: 1, // One retry on failure
     },
   },
 });

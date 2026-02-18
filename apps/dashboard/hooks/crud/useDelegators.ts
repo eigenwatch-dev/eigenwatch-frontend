@@ -27,6 +27,7 @@ export const useOperatorDelegators = (
     enabled: enabled && !!id,
     select: (data) => data.data?.data,
     placeholderData: keepPreviousData,
+    staleTime: 2 * 60_000, // 2 minutes: can change with delegation events
   });
 };
 

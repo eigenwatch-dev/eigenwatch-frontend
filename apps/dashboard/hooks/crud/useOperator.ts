@@ -15,6 +15,8 @@ import { QUERY_KEYS } from "@/lib/queryKey";
 import { DailySnapshotsParams } from "@/types/daily_snapshots.types";
 import {
   OperatorListParams,
+  OperatorDetail,
+  OperatorStats,
   ActivityParams,
   CompareOperatorsRequest,
 } from "@/types/operator.types";
@@ -27,24 +29,57 @@ export const useOperators = (params?: OperatorListParams) => {
     queryKey: QUERY_KEYS.operators(params),
     queryFn: () => getOperators(params),
     select: (data) => data.data,
+    staleTime: 2 * 60_000, // 2 minutes
   });
 };
 
-export const useOperator = (id: string, enabled = true) => {
+export const useOperator = (
+  id: string,
+  options?: { enabled?: boolean; initialData?: OperatorDetail }
+) => {
   return useQuery({
     queryKey: QUERY_KEYS.operator(id),
     queryFn: () => getOperator(id),
-    enabled: enabled && !!id,
+    enabled: (options?.enabled ?? true) && !!id,
     select: (data) => data.data?.data,
+    initialData: options?.initialData
+      ? {
+          success: true,
+          data: {
+            success: true,
+            message: "",
+            data: options.initialData,
+            meta: { request_id: "", timestamp: "", execution_time_ms: 0 },
+          },
+          error: null,
+          errorCode: undefined,
+        }
+      : undefined,
   });
 };
 
-export const useOperatorStats = (id: string, enabled = true) => {
+export const useOperatorStats = (
+  id: string,
+  options?: { enabled?: boolean; initialData?: OperatorStats }
+) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorStats(id),
     queryFn: () => getOperatorStats(id),
-    enabled: enabled && !!id,
+    enabled: (options?.enabled ?? true) && !!id,
     select: (data) => data.data?.data,
+    initialData: options?.initialData
+      ? {
+          success: true,
+          data: {
+            success: true,
+            message: "",
+            data: options.initialData,
+            meta: { request_id: "", timestamp: "", execution_time_ms: 0 },
+          },
+          error: null,
+          errorCode: undefined,
+        }
+      : undefined,
   });
 };
 
@@ -57,6 +92,7 @@ export const useOperatorActivity = (
     queryKey: QUERY_KEYS.operatorActivity(id, params),
     queryFn: () => getOperatorActivity(id, params),
     enabled: enabled && !!id,
+    staleTime: 2 * 60_000, // 2 minutes
   });
 };
 
@@ -72,6 +108,7 @@ export const useDailySnapshots = (
     queryFn: () => getDailySnapshots(id, params),
     enabled: enabled && !!id && !!params.date_from && !!params.date_to,
     select: (data) => data.data?.data,
+    staleTime: 5 * 60_000, // 5 minutes: historical data, very stable
   });
 };
 

@@ -23,6 +23,7 @@ export const useOperatorAVS = (
     queryFn: () => getOperatorAVS(id, params),
     enabled: enabled && !!id,
     select: (data) => data.data?.data,
+    staleTime: 5 * 60_000, // 5 minutes: changes rarely
   });
 };
 
