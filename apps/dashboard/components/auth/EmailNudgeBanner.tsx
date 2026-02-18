@@ -46,7 +46,7 @@ export function EmailNudgeBanner() {
 
   function handleAddEmail() {
     // Navigate to settings email section
-    window.location.href = "/settings?section=emails";
+    window.location.href = "/settings#emails";
   }
 
   return (

@@ -16,10 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     openAuthModal,
     logout,
     showAuthModal,
+    setRestoring,
   } = useAuthStore();
 
   const hasAttemptedRefresh = useRef(false);
-  const previousAddress = useRef<string | undefined>();
+  const previousAddress = useRef<string | undefined>(undefined);
 
   // Attempt silent auth on mount or when wallet connects
   useEffect(() => {
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       previousAddress.current = undefined;
       hasAttemptedRefresh.current = false;
+      setRestoring(false);
       return;
     }
 
@@ -54,6 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {
         // No existing session — prompt SIWE sign-in
         openAuthModal();
+      })
+      .finally(() => {
+        setRestoring(false);
       });
   }, [
     isConnected,
@@ -63,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccessToken,
     openAuthModal,
     logout,
+    setRestoring,
   ]);
 
   return (

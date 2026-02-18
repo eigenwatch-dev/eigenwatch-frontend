@@ -28,6 +28,7 @@ const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   isAuthenticated: false,
   isAuthenticating: false,
+  isRestoring: true,
   tier: "anonymous",
   showAuthModal: false,
   authStep: "sign",
@@ -42,6 +43,8 @@ const useAuthStore = create<AuthState>((set) => ({
   setAccessToken: (accessToken) => set({ accessToken }),
 
   setAuthenticating: (isAuthenticating) => set({ isAuthenticating }),
+
+  setRestoring: (isRestoring) => set({ isRestoring }),
 
   openAuthModal: () => set({ showAuthModal: true, authStep: "sign" }),
 
