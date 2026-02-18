@@ -26,10 +26,9 @@ export function ProfileSection() {
     if (!hasChanges) return;
     setSaving(true);
     try {
-      const updated = await updateProfile(
-        { display_name: displayName || undefined },
-        accessToken
-      );
+      const updated = await updateProfile(accessToken || "", {
+        display_name: displayName || undefined,
+      });
       setUser(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -127,11 +126,11 @@ export function ProfileSection() {
           </label>
           <div className="flex items-center gap-3">
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${tierColor[user?.tier || "free"] || tierColor.free}`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${tierColor[user?.tier.toLowerCase() || "free"] || tierColor.free}`}
             >
-              {tierLabel[user?.tier || "free"] || "Free Plan"}
+              {tierLabel[user?.tier.toLowerCase() || "free"] || "Free Plan"}
             </span>
-            {user?.tier === "free" && (
+            {user?.tier.toLowerCase() === "free" && (
               <button className="text-xs text-blue-400 hover:underline">
                 Upgrade to Pro
               </button>

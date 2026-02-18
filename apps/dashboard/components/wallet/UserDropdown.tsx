@@ -16,12 +16,14 @@ import { useAccount, useDisconnect } from "wagmi";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function UserDropdown() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
   const { tier } = useAuthStore();
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   const truncatedAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -89,7 +91,10 @@ export function UserDropdown() {
             <Copy className="mr-2 h-4 w-4" />
             <span>{copied ? "Copied!" : "Copy Address"}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="focus:bg-[#27272A] focus:text-white cursor-pointer">
+          <DropdownMenuItem
+            onClick={() => router.push("/settings#profile")}
+            className="focus:bg-[#27272A] focus:text-white cursor-pointer"
+          >
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>

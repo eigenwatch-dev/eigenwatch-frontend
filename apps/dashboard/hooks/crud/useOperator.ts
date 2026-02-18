@@ -10,6 +10,7 @@ import {
   compareOperators,
   getOperatorRankings,
   compareOperatorToNetwork,
+  getOperatorStrategies,
 } from "@/actions/operators";
 import { QUERY_KEYS } from "@/lib/queryKey";
 import { DailySnapshotsParams } from "@/types/daily_snapshots.types";
@@ -19,8 +20,9 @@ import {
   OperatorStats,
   ActivityParams,
   CompareOperatorsRequest,
+  ListOperatorStrategiesParams,
 } from "@/types/operator.types";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 
 // ==================== OPERATORS ====================
 
@@ -35,7 +37,7 @@ export const useOperators = (params?: OperatorListParams) => {
 
 export const useOperator = (
   id: string,
-  options?: { enabled?: boolean; initialData?: OperatorDetail }
+  options?: { enabled?: boolean; initialData?: OperatorDetail },
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operator(id),
@@ -60,7 +62,7 @@ export const useOperator = (
 
 export const useOperatorStats = (
   id: string,
-  options?: { enabled?: boolean; initialData?: OperatorStats }
+  options?: { enabled?: boolean; initialData?: OperatorStats },
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorStats(id),
@@ -86,7 +88,7 @@ export const useOperatorStats = (
 export const useOperatorActivity = (
   id: string,
   params?: ActivityParams,
-  enabled = true
+  enabled = true,
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorActivity(id, params),
@@ -96,12 +98,26 @@ export const useOperatorActivity = (
   });
 };
 
+export const useOperatorStrategies = (
+  id: string,
+  params?: ListOperatorStrategiesParams,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.operatorStrategies(id, params),
+    queryFn: () => getOperatorStrategies(id, params),
+    enabled: enabled && !!id,
+    select: (data) => data.data?.data,
+    placeholderData: keepPreviousData,
+  });
+};
+
 // ==================== SNAPSHOTS ====================
 
 export const useDailySnapshots = (
   id: string,
   params: DailySnapshotsParams,
-  enabled = true
+  enabled = true,
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorSnapshots(id, params),
@@ -133,7 +149,7 @@ export const useCompareOperators = () => {
 export const useOperatorRankings = (
   id: string,
   date?: string,
-  enabled = true
+  enabled = true,
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorRankings(id, date),
@@ -145,7 +161,7 @@ export const useOperatorRankings = (
 export const useCompareOperatorToNetwork = (
   id: string,
   date?: string,
-  enabled = true
+  enabled = true,
 ) => {
   return useQuery({
     queryKey: QUERY_KEYS.operatorVsNetwork(id, date),
