@@ -10,29 +10,58 @@ interface ProUpgradeCardProps {
   description?: string;
 }
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+
 export function ProUpgradeCard({ feature, description }: ProUpgradeCardProps) {
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+
+  const handleUpgrade = () => {
+    setShowModal(true);
+  };
+
+  const handleLearnMore = () => {
+    router.push("/settings#subscription");
+  };
+
   return (
-    <Card className="border-border bg-card max-w-sm">
-      <CardContent className="p-6 text-center space-y-3">
-        <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-foreground">
-            Pro Feature
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {description || `Unlock ${feature} with a Pro subscription.`}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Button size="sm" className="w-full">
-            Upgrade to Pro
-          </Button>
-          <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
-            Learn More
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <Card className="border-border bg-card max-w-sm">
+        <CardContent className="p-6 text-center space-y-3">
+          <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">
+              Pro Feature
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {description || `Unlock ${feature} with a Pro subscription.`}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button size="sm" className="w-full" onClick={handleUpgrade}>
+              Upgrade to Pro
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-muted-foreground"
+              onClick={handleLearnMore}
+            >
+              Learn More
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <FeatureComingSoonModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        featureName="Pro Plan"
+        benefits="Full risk analysis, detailed strategy tables, delegator intelligence, commission behavior history, operator comparison tools, watchlist with alerts, and priority API access."
+      />
+    </>
   );
 }
 

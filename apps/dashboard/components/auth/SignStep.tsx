@@ -37,7 +37,7 @@ export function SignStep() {
       const signature = await signMessageAsync({ message });
       const data = await verifySignature(address, signature, nonce);
 
-      setAccessToken(data.access_token);
+      setAccessToken(data.tokens.access_token);
       setUser(data.user);
       setAuthStep("email");
     } catch (err) {
