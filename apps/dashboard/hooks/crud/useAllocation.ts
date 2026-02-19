@@ -18,6 +18,7 @@ export const useAllocationsOverview = (id: string, enabled = true) => {
     queryFn: () => getAllocationsOverview(id),
     enabled: enabled && !!id,
     select: (data) => data.data?.data,
+    staleTime: 2 * 60_000, // 2 minutes: can change
   });
 };
 

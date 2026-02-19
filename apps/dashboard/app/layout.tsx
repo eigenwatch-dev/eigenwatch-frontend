@@ -3,8 +3,9 @@ import "./globals.css";
 import AppProvider from "./Provider";
 import { NavBar } from "@repo/ui/NavBar";
 import WalletProvider from "../../../packages/ui/src/providers/wallet";
-
-import { headers } from "next/headers";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { EmailNudgeBanner } from "@/components/auth/EmailNudgeBanner";
+import { WalletButton } from "@/components/wallet/WalletButton";
 
 const navLinks = [
   { label: "Dashboard", href: "/" },
@@ -84,27 +85,29 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersObj = await headers();
-  const cookies = headersObj.get("cookie");
-
   return (
     <html lang="en" className="dark">
       <body className={`antialiased bg-background text-foreground`}>
-        <WalletProvider cookies={cookies}>
+        <WalletProvider>
           <AppProvider>
-            <div className="flex flex-col w-full h-screen">
-              <NavBar
-                logoHref={
-                  process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"
-                }
-                navLinks={navLinks}
-              />
-              <div className=" w-full flex h-full overflow-y-auto pt-[65px]">
-                <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
-                  {children}
+            <AuthProvider>
+              <div className="flex flex-col w-full h-screen">
+                <NavBar
+                  logoHref={
+                    process.env.NEXT_PUBLIC_WEBSITE_URL ||
+                    "http://localhost:3000"
+                  }
+                  navLinks={navLinks}
+                  walletConnect={<WalletButton />}
+                />
+                <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
+                  <EmailNudgeBanner />
+                  <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
+                    {children}
+                  </div>
                 </div>
               </div>
-            </div>
+            </AuthProvider>
           </AppProvider>
         </WalletProvider>
         <script

@@ -174,3 +174,50 @@ export interface NetworkComparison {
   percentile: Record<string, number>;
   date: string;
 }
+
+// ==================== STRATEGY TYPES ====================
+
+export interface ListOperatorStrategiesParams {
+  limit?: number;
+  offset?: number;
+  min_tvs?: number;
+  max_tvs?: number;
+  min_utilization?: number;
+  max_utilization?: number;
+  sort_by?: "tvs" | "utilization" | "encumbered";
+}
+
+export interface OperatorStrategyListItem {
+  strategy_id: string;
+  strategy_address: string;
+  strategy_name: string;
+  strategy_symbol: string;
+  max_magnitude: string;
+  encumbered_magnitude: string;
+  available_magnitude: string;
+  utilization_rate: string;
+  last_updated_at: string;
+  delegator_count: number;
+}
+
+export interface OperatorStrategiesResponse {
+  total_strategies: number;
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+  distribution:
+    | {
+        strategy_address: string;
+        token_symbol: string;
+        tvs_percentage: number;
+      }[]
+    | null;
+  strategies: OperatorStrategyListItem[] | null;
+  tier_context: {
+    user_tier: string;
+    gated_fields: string[];
+    upgrade_message?: string;
+  };
+}

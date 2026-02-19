@@ -21,6 +21,7 @@ export const useRiskAssessment = (
     queryFn: () => getRiskAssessment(id, date),
     enabled: enabled && !!id,
     select: (data) => data.data?.data,
+    staleTime: 5 * 60_000, // 5 minutes: computed daily
   });
 };
 

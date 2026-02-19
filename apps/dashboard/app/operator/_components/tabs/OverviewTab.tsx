@@ -7,6 +7,8 @@ import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, TrendingUp, Users, Shield, AlertCircle } from "lucide-react";
+import { ProGate } from "@/components/shared/ProGate";
+import { useProAccess } from "@/hooks/useProAccess";
 import { useDailySnapshots } from "@/hooks/crud/useOperator";
 import { OperatorDetail } from "@/types/operator.types";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
@@ -47,6 +49,7 @@ function formatDateForChart(dateStr: string, isLongRange: boolean): string {
 }
 
 const OverviewTab = ({ operator }: OverviewTabProps) => {
+  const { isFree } = useProAccess();
   const { data: riskData, isLoading: loadingRisk } = useRiskAssessment(
     operator?.operator_id
   );
@@ -114,55 +117,61 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Performance Scores */}
         <SectionContainer heading="Performance Overview">
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-2 w-full" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3 text-sm">
-              {/* Risk Score */}
-              <MetricProgress
-                metric="Risk Score"
-                value={Number(riskData?.scores?.risk) || 0}
-              />
-
-              <div className="pt-3 space-y-3 border-t border-border">
-                <MetricProgress
-                  metric="Performance Score"
-                  value={Number(riskData?.scores?.performance) || 0}
-                />
-                <MetricProgress
-                  metric="Economic Score"
-                  value={Number(riskData?.scores?.economic) || 0}
-                />
-                <MetricProgress
-                  metric="Network Position"
-                  value={Number(riskData?.scores?.network_position) || 0}
-                />
+          <ProGate
+            isLocked={isFree}
+            feature="Performance Scores"
+            description="Unlock detailed performance scores, risk breakdown, and confidence metrics with a Pro subscription."
+          >
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-2 w-full" />
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                {/* Risk Score */}
+                <MetricProgress
+                  metric="Risk Score"
+                  value={Number(riskData?.scores?.risk) || 0}
+                />
 
-              {/* Key Stats */}
-              <div className="pt-3 space-y-3 border-t border-border">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Confidence Score</span>
-                  <Badge variant="outline" className="text-muted-foreground">
-                    {riskData?.scores?.confidence || 0}%
-                  </Badge>
+                <div className="pt-3 space-y-3 border-t border-border">
+                  <MetricProgress
+                    metric="Performance Score"
+                    value={Number(riskData?.scores?.performance) || 0}
+                  />
+                  <MetricProgress
+                    metric="Economic Score"
+                    value={Number(riskData?.scores?.economic) || 0}
+                  />
+                  <MetricProgress
+                    metric="Network Position"
+                    value={Number(riskData?.scores?.network_position) || 0}
+                  />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Delegation Volatility</span>
-                  <Badge variant="outline" className="text-green-500 border-green-500/30">
-                    Stable
-                  </Badge>
+
+                {/* Key Stats */}
+                <div className="pt-3 space-y-3 border-t border-border">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Confidence Score</span>
+                    <Badge variant="outline" className="text-muted-foreground">
+                      {riskData?.scores?.confidence || 0}%
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Delegation Volatility</span>
+                    <Badge variant="outline" className="text-green-500 border-green-500/30">
+                      Stable
+                    </Badge>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </ProGate>
         </SectionContainer>
 
         {/* Recent Activity */}

@@ -18,6 +18,8 @@ import {
   OperatorRankings,
   NetworkComparison,
   OperatorDetail,
+  ListOperatorStrategiesParams,
+  OperatorStrategiesResponse,
 } from "@/types/operator.types";
 import { SlashingIncidents } from "@/types/slash.types";
 
@@ -45,7 +47,7 @@ export const getOperatorStats = async (id: string) =>
 
 export const getOperatorActivity = async (
   id: string,
-  params?: ActivityParams
+  params?: ActivityParams,
 ) => {
   const queryString = serializeParams(params as any);
   return handleApiAction<Activity[]>({
@@ -54,14 +56,25 @@ export const getOperatorActivity = async (
   });
 };
 
+export const getOperatorStrategies = async (
+  id: string,
+  params?: ListOperatorStrategiesParams,
+) => {
+  const queryString = serializeParams(params as any);
+  return handleApiAction<OperatorStrategiesResponse>({
+    endpoint: `/api/v1/operators/${id}/strategies${queryString}`,
+    method: "get",
+  });
+};
+
 // ==================== SNAPSHOTS ====================
 
 export const getDailySnapshots = async (
   id: string,
-  params: DailySnapshotsParams
+  params: DailySnapshotsParams,
 ) => {
   const queryString = serializeParams(params as any);
-  return handleApiAction<{snapshots: DailySnapshot[]}>({
+  return handleApiAction<{ snapshots: DailySnapshot[] }>({
     endpoint: `/api/v1/operators/${id}/snapshots/daily${queryString}`,
     method: "get",
   });

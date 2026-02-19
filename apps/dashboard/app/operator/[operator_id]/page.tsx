@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { getOperator } from "@/actions/operators";
+import { getOperator, getOperatorStats } from "@/actions/operators";
 import OperatorProfile from "../_components/OperatorProfile";
 
 interface Props {
@@ -30,11 +30,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function OperatorProfilePage({ params }: Props) {
   const { operator_id } = await params;
-  // We fetch here again for JSON-LD. Next.js request deduplication might handle this if it was a fetch,
-  // but since it's a server action wrapper around axios/fetch, we rely on the implementation.
-  // Even if double fetch, it's acceptable for this SEO task.
-  const { data: apiResponse } = await getOperator(operator_id);
-  const operator = apiResponse?.data;
+
+  // Fetch overview + stats server-side in parallel for SSR
+  const [operatorRes, statsRes] = await Promise.all([
+    getOperator(operator_id),
+    getOperatorStats(operator_id),
+  ]);
+
+  const operator = operatorRes.data?.data;
+  const stats = statsRes.data?.data;
 
   const jsonLd = operator ? {
     "@context": "https://schema.org",
@@ -53,7 +57,11 @@ export default async function OperatorProfilePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <OperatorProfile />
+      <OperatorProfile
+        operatorId={operator_id}
+        initialOperator={operator ?? undefined}
+        initialStats={stats ?? undefined}
+      />
     </>
   );
 }

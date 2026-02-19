@@ -1,11 +1,10 @@
 // components/operator/OperatorProfile.tsx
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,25 +19,51 @@ import {
   ExternalLink,
   CheckCircle2,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useOperator, useOperatorStats } from "@/hooks/crud/useOperator";
-import OverviewTab from "./tabs/OverviewTab";
-import StrategiesTab from "./tabs/StrategiesTab";
 import { useRiskAssessment } from "@/hooks/crud/useOperatorRisk";
 import { formatUSD } from "@/lib/formatting";
-import { AllocationsTab } from "./tabs/AllocationsTab";
-import { AVSTab } from "./tabs/AVSTab";
-import { CommissionTab } from "./tabs/CommissionTab";
-import { DelegatorsTab } from "./tabs/DelegatorsTab";
-import { RiskAnalysisTab } from "./tabs/RiskAnalysisTab";
+import { QUERY_KEYS } from "@/lib/queryKey";
 import { RiskBadge } from "@/components/shared/data/RiskBadge";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { CardContainer } from "@/components/shared/data/CardContainer";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
 import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { ProBadge } from "@/components/shared/ProGate";
+import { ProGateCell } from "@/components/shared/ProGateCell";
+import { useProAccess } from "@/hooks/useProAccess";
+import { OperatorDetail, OperatorStats } from "@/types/operator.types";
 
-const OperatorProfile = () => {
-  const params = useParams();
-  const operatorId = params?.operator_id as string;
+// Lazy-loaded tab imports
+import OverviewTab from "./tabs/OverviewTab";
+import StrategiesTab from "./tabs/StrategiesTab";
+import { AllocationsTab } from "./tabs/AllocationsTab";
+import { AVSTab } from "./tabs/AVSTab";
+import { CommissionTab } from "./tabs/CommissionTab";
+import { DelegatorsTab } from "./tabs/DelegatorsTab";
+import { RiskAnalysisTab } from "./tabs/RiskAnalysisTab";
+
+// Server action imports for prefetching
+import { getOperatorStrategies } from "@/actions/strategies";
+import { getOperatorAVS } from "@/actions/avs";
+import { getOperatorDelegators } from "@/actions/delegator";
+import { getAllocationsOverview } from "@/actions/allocation";
+import { getOperatorCommission } from "@/actions/commissions";
+import { getRiskAssessment } from "@/actions/operator-risk";
+
+interface OperatorProfileProps {
+  operatorId: string;
+  initialOperator?: OperatorDetail;
+  initialStats?: OperatorStats;
+}
+
+const OperatorProfile = ({
+  operatorId,
+  initialOperator,
+  initialStats,
+}: OperatorProfileProps) => {
+  const queryClient = useQueryClient();
+  const { isFree } = useProAccess();
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
 
@@ -52,13 +77,16 @@ const OperatorProfile = () => {
     benefits: "",
   });
 
-  // Fetch all data
-  const { data: operatorData, isLoading: loadingOperator } =
-    useOperator(operatorId);
-  const { data: statsData, isLoading: loadingStats } =
-    useOperatorStats(operatorId);
-  const { data: riskData, isLoading: loadingRisk } =
-    useRiskAssessment(operatorId);
+  // Hydrate React Query with server-fetched data (no loading flash on SSR)
+  const { data: operatorData, isLoading: loadingOperator } = useOperator(
+    operatorId,
+    { initialData: initialOperator }
+  );
+  const { data: statsData, isLoading: loadingStats } = useOperatorStats(
+    operatorId,
+    { initialData: initialStats }
+  );
+  const { data: riskData } = useRiskAssessment(operatorId);
 
   const operator = operatorData;
   const stats = statsData;
@@ -75,6 +103,57 @@ const OperatorProfile = () => {
     setSelectedFeature({ name, benefits });
     setModalOpen(true);
   };
+
+  // Prefetch tab data on hover for instant tab switches
+  const handleTabHover = useCallback(
+    (tabName: string) => {
+      switch (tabName) {
+        case "strategies":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorStrategies(operatorId),
+            queryFn: () => getOperatorStrategies(operatorId),
+            staleTime: 60_000,
+          });
+          break;
+        case "avs":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorAVS(operatorId),
+            queryFn: () => getOperatorAVS(operatorId),
+            staleTime: 5 * 60_000,
+          });
+          break;
+        case "delegators":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorDelegators(operatorId),
+            queryFn: () => getOperatorDelegators(operatorId),
+            staleTime: 2 * 60_000,
+          });
+          break;
+        case "allocations":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorAllocations(operatorId),
+            queryFn: () => getAllocationsOverview(operatorId),
+            staleTime: 2 * 60_000,
+          });
+          break;
+        case "commission":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorCommission(operatorId),
+            queryFn: () => getOperatorCommission(operatorId),
+            staleTime: 5 * 60_000,
+          });
+          break;
+        case "risk":
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.operatorRisk(operatorId),
+            queryFn: () => getRiskAssessment(operatorId),
+            staleTime: 5 * 60_000,
+          });
+          break;
+      }
+    },
+    [operatorId, queryClient]
+  );
 
   if (loadingOperator) {
     return (
@@ -290,10 +369,16 @@ const OperatorProfile = () => {
               heading="Risk Assessment"
               info="An overall risk assessment score. Higher scores indicate safer operators with better track records."
             />
-            <RiskBadge
-              level={riskData?.risk_level || "MEDIUM"}
-              score={riskData?.scores.risk.toString() || "---"}
-            />
+            <ProGateCell
+              isLocked={isFree}
+              feature="Risk Score"
+              description="Unlock detailed risk scores and assessments to evaluate operator safety before delegating."
+            >
+              <RiskBadge
+                level={riskData?.risk_level || "MEDIUM"}
+                score={riskData?.scores.risk.toString() || "---"}
+              />
+            </ProGateCell>
           </div>
 
           <div className="space-y-2">
@@ -343,7 +428,7 @@ const OperatorProfile = () => {
         </div>
       </CardContainer>
 
-      {/* Tabbed Content */}
+      {/* Tabbed Content - Lazy loaded: only active tab renders */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -351,41 +436,60 @@ const OperatorProfile = () => {
       >
         <TabsList className="grid w-full grid-cols-7 bg-muted/50 text-foreground">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          <TabsTrigger value="avs">AVS</TabsTrigger>
-          <TabsTrigger value="delegators">Delegators</TabsTrigger>
-          <TabsTrigger value="allocations">Allocations</TabsTrigger>
-          <TabsTrigger value="commission">Commission</TabsTrigger>
-          <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
+          <TabsTrigger
+            value="strategies"
+            onMouseEnter={() => handleTabHover("strategies")}
+          >
+            Strategies
+          </TabsTrigger>
+          <TabsTrigger
+            value="avs"
+            onMouseEnter={() => handleTabHover("avs")}
+          >
+            AVS
+          </TabsTrigger>
+          <TabsTrigger
+            value="delegators"
+            onMouseEnter={() => handleTabHover("delegators")}
+          >
+            Delegators
+          </TabsTrigger>
+          <TabsTrigger
+            value="allocations"
+            onMouseEnter={() => handleTabHover("allocations")}
+          >
+            Allocations
+          </TabsTrigger>
+          <TabsTrigger
+            value="commission"
+            onMouseEnter={() => handleTabHover("commission")}
+          >
+            Commission
+          </TabsTrigger>
+          <TabsTrigger
+            value="risk"
+            onMouseEnter={() => handleTabHover("risk")}
+          >
+            Risk Analysis <ProBadge />
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
-          <OverviewTab operator={operator} />
-        </TabsContent>
-
-        <TabsContent value="strategies">
+        {/* Lazy tab rendering: only the active tab's component is mounted */}
+        {activeTab === "overview" && <OverviewTab operator={operator} />}
+        {activeTab === "strategies" && (
           <StrategiesTab operatorId={operatorId} />
-        </TabsContent>
-
-        <TabsContent value="avs">
-          <AVSTab operatorId={operatorId} />
-        </TabsContent>
-
-        <TabsContent value="delegators">
+        )}
+        {activeTab === "avs" && <AVSTab operatorId={operatorId} />}
+        {activeTab === "delegators" && (
           <DelegatorsTab operatorId={operatorId} />
-        </TabsContent>
-
-        <TabsContent value="allocations">
+        )}
+        {activeTab === "allocations" && (
           <AllocationsTab operatorId={operatorId} />
-        </TabsContent>
-
-        <TabsContent value="commission">
+        )}
+        {activeTab === "commission" && (
           <CommissionTab operatorId={operatorId} />
-        </TabsContent>
-
-        <TabsContent value="risk">
-          <RiskAnalysisTab operatorId={operatorId} />
-        </TabsContent>
+        )}
+        {activeTab === "risk" && <RiskAnalysisTab operatorId={operatorId} />}
       </Tabs>
 
       <FeatureComingSoonModal
