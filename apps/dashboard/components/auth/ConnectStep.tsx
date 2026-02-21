@@ -10,6 +10,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import useAuthStore from "@/hooks/store/useAuthStore";
+import Link from "next/link";
+
+const websiteUrl =
+  process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
 
 const WALLET_ICONS: Record<string, React.ReactNode> = {
   MetaMask: <WalletMetamask variant="branded" size={24} />,
@@ -113,8 +117,15 @@ export function ConnectStep() {
       </div>
 
       <p className="text-[10px] text-[#A1A1AA] text-center px-4">
-        By connecting a wallet, you agree to EigenWatch's Terms of Service and
-        Privacy Policy.
+        By connecting a wallet, you agree to EigenWatch&apos;s{" "}
+        <Link
+          href={`${websiteUrl}/terms`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-white transition-colors"
+        >
+          Terms of Service
+        </Link>
       </p>
     </div>
   );

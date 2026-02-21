@@ -130,8 +130,13 @@ export function ConnectWalletDialog({
 
         <div className="p-6 border-t border-white/5 bg-[#18181B]/50">
           <p className="text-xs text-[#A1A1AA] text-center leading-relaxed">
-            By connecting a wallet, you agree to EigenWatch's{" "}
-            <a href="#" className="underline hover:text-white">
+            By connecting a wallet, you agree to EigenWatch&apos;s{" "}
+            <a
+              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"}/terms`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-white"
+            >
               Terms of Service
             </a>{" "}
             and acknowledge that you have read and understood the disclaimers

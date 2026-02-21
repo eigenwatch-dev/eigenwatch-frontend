@@ -210,7 +210,6 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
     : paginatedStrategies.map((s: OperatorStrategyListItem) => ({
         ...s,
         id: s.strategy_id,
-        tvs_usd: s.tvs_usd,
       }));
 
   // Pagination Handlers

@@ -27,6 +27,12 @@ export default function Footer() {
             Operators
           </Link>
           <Link
+            href="/terms"
+            className="text-[#71717A] hover:text-white text-sm transition-colors"
+          >
+            Terms
+          </Link>
+          <Link
             href="https://x.com/eigenwatch"
             target="_blank"
             rel="noopener noreferrer"
