@@ -1,4 +1,6 @@
-# Terms and Conditions
+# Terms of Service
+
+Please read these terms carefully before using the EigenWatch platform.
 
 **Last Updated: February 21, 2026**
 

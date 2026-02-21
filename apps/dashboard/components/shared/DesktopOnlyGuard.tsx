@@ -27,10 +27,12 @@ export const DesktopOnlyGuard = ({ children }: DesktopOnlyGuardProps) => {
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background overflow-hidden">
-        {/* Animated Background Blobs */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-500/10 blur-[100px] rounded-full" />
-        <div className="absolute top-1/3 right-1/4 w-[200px] h-[200px] bg-blue-500/10 blur-[80px] rounded-full" />
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#09090B] overflow-hidden">
+        {/* Marketing CTA Style Background */}
+        <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-[70vh] bg-linear-to-b from-[#1624564D] to-[#09090B] border border-[#27272A80] rounded-[2rem]" />
+
+        {/* Radial Gradient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(ellipse_at_50%_40%,_rgba(21,93,252,0.12)_0%,_transparent_60%)] pointer-events-none" />
 
         <div className="relative z-10 max-w-sm w-full text-center space-y-8">
           <div className="flex justify-center flex-col items-center gap-4">
