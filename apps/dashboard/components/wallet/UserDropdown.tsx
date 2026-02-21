@@ -21,13 +21,15 @@ import { useRouter } from "next/navigation";
 export function UserDropdown() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { tier } = useAuthStore();
+  const { user, tier } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
   const truncatedAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "";
+
+  const displayName = user?.display_name || truncatedAddress;
 
   const handleCopyAddress = () => {
     if (address) {
@@ -49,10 +51,12 @@ export function UserDropdown() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="h-10 px-4 gap-2 bg-[#18181B] border-white/10 hover:bg-[#27272A] hover:text-white text-white font-mono"
+          className="h-10 px-4 gap-2 bg-[#18181B] border-white/10 hover:bg-[#27272A] hover:text-white text-white font-medium"
         >
           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-purple-500" />
-          {truncatedAddress}
+          <span className={cn(!user?.display_name && "font-mono")}>
+            {displayName}
+          </span>
           <ChevronDown className="w-4 h-4 text-muted-foreground ml-1" />
         </Button>
       </DropdownMenuTrigger>
@@ -63,7 +67,9 @@ export function UserDropdown() {
       >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Connected</p>
+            <p className="text-sm font-medium leading-none">
+              {user?.display_name || "Connected"}
+            </p>
             <p className="text-xs leading-none text-muted-foreground font-mono">
               {truncatedAddress}
             </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useDisconnect, useSignMessage } from "wagmi";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import useAuthStore from "@/hooks/store/useAuthStore";
 import { getNonce, verifySignature } from "@/lib/auth-api";
 
 export function SignStep() {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
   const { setUser, setAccessToken, setAuthStep, setAuthenticating } =
@@ -22,10 +22,16 @@ export function SignStep() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auto-redirect to connect if wallet is not connected
+  useEffect(() => {
+    if (!isConnected) {
+      setAuthStep("connect");
+    }
+  }, [isConnected, setAuthStep]);
+
   const truncatedAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "";
-
   async function handleSign() {
     if (!address) return;
 
@@ -39,7 +45,22 @@ export function SignStep() {
 
       setAccessToken(data.tokens.access_token);
       setUser(data.user);
-      setAuthStep("email");
+
+      // Check email status to decide next step
+      const emails = data.user.emails || [];
+      const hasVerifiedEmail = emails.some((e: any) => e.is_verified);
+      const hasUnverifiedEmail = emails.some((e: any) => !e.is_verified);
+
+      if (hasVerifiedEmail) {
+        // User already has a verified email — we're done
+        useAuthStore.getState().closeAuthModal();
+      } else if (hasUnverifiedEmail) {
+        // User has an unverified email — skip to verify step
+        setAuthStep("verify");
+      } else {
+        // No email added yet — go to email prompt
+        setAuthStep("email");
+      }
     } catch (err) {
       if (err instanceof Error && err.message.includes("User rejected")) {
         setError("Signature rejected. Please try again.");

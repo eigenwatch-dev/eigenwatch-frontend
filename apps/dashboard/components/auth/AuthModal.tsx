@@ -1,10 +1,8 @@
 "use client";
 
 import useAuthStore from "@/hooks/store/useAuthStore";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ConnectStep } from "./ConnectStep";
 import { SignStep } from "./SignStep";
 import { EmailStep } from "./EmailStep";
 import { VerifyStep } from "./VerifyStep";
@@ -12,8 +10,8 @@ import { VerifyStep } from "./VerifyStep";
 export function AuthModal() {
   const { showAuthModal, closeAuthModal, authStep } = useAuthStore();
 
-  // During sign step, modal is not dismissible
-  const canDismiss = authStep !== "sign";
+  // Modal is dismissible during connect step, but not during signing
+  const canDismiss = authStep === "connect" || authStep !== "sign";
 
   return (
     <Dialog
@@ -34,6 +32,7 @@ export function AuthModal() {
           if (!canDismiss) e.preventDefault();
         }}
       >
+        {authStep === "connect" && <ConnectStep />}
         {authStep === "sign" && <SignStep />}
         {authStep === "email" && <EmailStep />}
         {authStep === "verify" && <VerifyStep />}
