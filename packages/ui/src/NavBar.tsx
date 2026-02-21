@@ -17,6 +17,7 @@ export interface NavBarProps {
   navLinks?: NavLink[];
   activePath?: string;
   walletConnect?: React.ReactNode;
+  isDashboard?: boolean;
 }
 
 const menuVariants = {
@@ -50,6 +51,7 @@ export function NavBar({
   navLinks = [],
   activePath,
   walletConnect,
+  isDashboard,
 }: NavBarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,8 +59,10 @@ export function NavBar({
   const currentPath = activePath || pathname;
 
   return (
-    <nav className="fixed inset-0 z-50 bg-[#09090B]/80 backdrop-blur-md border-b border-white/5 w-full h-fit">
-      <div className="flex justify-between max-w-360 mx-auto w-full px-4 md:px-27 py-3">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#09090B]/80 backdrop-blur-md border-b border-white/10 w-full">
+      <div
+        className={`flex justify-between items-center max-w-7xl mx-auto w-full ${isDashboard ? "px-[60px]" : "px-4 sm:px-6 lg:px-0"} py-4 sm:py-5`}
+      >
         {/* Logo */}
         <div className="flex my-auto">
           <Link href={logoHref}>

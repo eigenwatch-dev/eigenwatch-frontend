@@ -80,6 +80,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { DesktopOnlyGuard } from "@/components/shared/DesktopOnlyGuard";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -91,22 +93,25 @@ export default async function RootLayout({
         <WalletProvider>
           <AppProvider>
             <AuthProvider>
-              <div className="flex flex-col w-full h-screen">
-                <NavBar
-                  logoHref={
-                    process.env.NEXT_PUBLIC_WEBSITE_URL ||
-                    "http://localhost:3000"
-                  }
-                  navLinks={navLinks}
-                  walletConnect={<WalletButton />}
-                />
-                <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
-                  <EmailNudgeBanner />
-                  <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
-                    {children}
+              <DesktopOnlyGuard>
+                <div className="flex flex-col w-full h-screen">
+                  <NavBar
+                    logoHref={
+                      process.env.NEXT_PUBLIC_WEBSITE_URL ||
+                      "http://localhost:3000"
+                    }
+                    navLinks={navLinks}
+                    isDashboard={true}
+                    walletConnect={<WalletButton />}
+                  />
+                  <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
+                    <EmailNudgeBanner />
+                    <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
+                      {children}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </DesktopOnlyGuard>
             </AuthProvider>
           </AppProvider>
         </WalletProvider>

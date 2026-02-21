@@ -147,17 +147,10 @@ function ConnectWalletContent() {
         <div className="text-xs text-[#52525B] flex gap-1">
           <span>By connecting your wallet, you agree to our</span>
           <Link
-            href="#"
-            className="text-[#71717A] hover:text-white transition-colors"
+            href="/terms"
+            className="text-[#71717A] hover:text-white transition-colors underline"
           >
             Terms of Service
-          </Link>
-          <span>and</span>
-          <Link
-            href="#"
-            className="text-[#71717A] hover:text-white transition-colors"
-          >
-            Privacy Policy
           </Link>
         </div>
       </div>

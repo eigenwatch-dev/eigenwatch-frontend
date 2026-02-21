@@ -15,7 +15,10 @@ import { useAllocationsOverview } from "@/hooks/crud/useAllocation";
 import { formatUSD } from "@/lib/formatting";
 import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
 import { Layers, PieChart, Shield, TrendingUp } from "lucide-react";
-import type { AllocationByAVS, AllocationByStrategy } from "@/types/allocation.types";
+import type {
+  AllocationByAVS,
+  AllocationByStrategy,
+} from "@/types/allocation.types";
 
 interface AllocationsTabProps {
   operatorId: string;
@@ -52,22 +55,46 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
   const operatorSetCount = summary?.total_operator_set_count || 0;
 
   // Format strategy data for display
-  const strategyData = (allocations?.by_strategy || []).map((strategy: AllocationByStrategy) => ({
-    strategy_name: strategy.strategy_symbol || strategy.strategyName || "Unknown",
-    tvs_usd: strategy.tvs_usd ? formatUSD(strategy.tvs_usd) : "—",
-    allocated_usd: strategy.allocated_usd ? formatUSD(strategy.allocated_usd) : "—",
-    utilization: strategy.utilization_pct || "0",
-    avs_count: strategy.avs_count || strategy.avsCount || 0,
-  }));
+  const strategyData = (allocations?.by_strategy || []).map(
+    (strategy: AllocationByStrategy) => ({
+      strategy_name:
+        strategy.strategy_symbol || strategy.strategyName || "Unknown",
+      tvs_usd: strategy.tvs_usd ? formatUSD(strategy.tvs_usd) : "—",
+      allocated_usd: strategy.allocated_usd
+        ? formatUSD(strategy.allocated_usd)
+        : "—",
+      utilization: strategy.utilization_pct || "0",
+      avs_count: strategy.avs_count || strategy.avsCount || 0,
+    }),
+  );
 
   // Format AVS data for display
   const avsData = (allocations?.by_avs || []).map((avs: AllocationByAVS) => ({
     avs_name: avs.avs_name || avs.avsName || "Unknown AVS",
-    allocated_usd: avs.total_allocated_usd ? formatUSD(avs.total_allocated_usd) : "—",
+    allocated_usd: avs.total_allocated_usd
+      ? formatUSD(avs.total_allocated_usd)
+      : "—",
     share_pct: avs.allocation_share_pct ? `${avs.allocation_share_pct}%` : "—",
     operator_sets: avs.operator_set_count || avs.operator_sets || 0,
     strategies: avs.strategies || (avs.strategies_used?.length ?? 0),
   }));
+
+  const DUMMY_AVS_ALLOCATIONS = Array.from({ length: 6 }).map((_, i) => ({
+    avs_name: [
+      "EigenDA",
+      "AltLayer",
+      "Brevis",
+      "Eoracle",
+      "Lagrange",
+      "WitnessChain",
+    ][i],
+    allocated_usd: formatUSD(5000000 - i * 800000),
+    share_pct: `${(25 - i * 3).toFixed(1)}%`,
+    operator_sets: 2,
+    strategies: 3,
+  }));
+
+  const displayAvsData = isFree ? DUMMY_AVS_ALLOCATIONS : avsData;
 
   return (
     <div className="space-y-6">
@@ -121,14 +148,20 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
                 <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{strategy.strategy_name}</span>
+                      <span className="font-medium">
+                        {strategy.strategy_name}
+                      </span>
                       <Badge variant="outline" className="text-xs">
-                        {strategy.avs_count} AVS{strategy.avs_count !== 1 ? "s" : ""}
+                        {strategy.avs_count} AVS
+                        {strategy.avs_count !== 1 ? "s" : ""}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-muted-foreground">
-                        Allocated: <span className="text-foreground">{strategy.allocated_usd}</span>
+                        Allocated:{" "}
+                        <span className="text-foreground">
+                          {strategy.allocated_usd}
+                        </span>
                       </span>
                       <UtilizationBadge pct={strategy.utilization} size="sm" />
                     </div>
@@ -148,7 +181,7 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
           heading="Allocations by AVS"
           info="Breakdown of how much value is allocated to each AVS network. Shows where the operator's stake is being used."
         >
-          {avsData.length > 0 ? (
+          {displayAvsData.length > 0 ? (
             <ReusableTable
               columns={[
                 { key: "avs_name", displayName: "AVS" },
@@ -157,14 +190,16 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
                 { key: "operator_sets", displayName: "Operator Sets" },
                 { key: "strategies", displayName: "Strategies" },
               ]}
-              data={avsData}
+              data={displayAvsData}
               tableFilters={{ title: "Allocations by AVS" }}
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No allocations found</p>
-              <p className="text-sm mt-1">This operator has not allocated to any AVS yet.</p>
+              <p className="text-sm mt-1">
+                This operator has not allocated to any AVS yet.
+              </p>
             </div>
           )}
         </SectionContainer>
@@ -182,9 +217,11 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
           Understanding Allocations
         </h4>
         <p className="text-sm text-muted-foreground">
-          Allocations represent how much of an operator&apos;s stake is committed to secure different AVS networks.
-          Higher utilization means more of the operator&apos;s capacity is being used. The values shown are in USD
-          for easier comparison across different strategies and assets.
+          Allocations represent how much of an operator&apos;s stake is
+          committed to secure different AVS networks. Higher utilization means
+          more of the operator&apos;s capacity is being used. The values shown
+          are in USD for easier comparison across different strategies and
+          assets.
         </p>
       </div>
     </div>

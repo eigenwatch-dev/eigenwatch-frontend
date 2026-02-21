@@ -141,6 +141,77 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
 
   const chartColors = pieChartData.map((d) => d.color);
 
+  // Dummy data for gated table
+  const DUMMY_STRATEGIES = [
+    {
+      strategy_id: "dummy-1",
+      strategy_name: "Ethereum Beacon Chain",
+      strategy_symbol: "beaconETH",
+      tvs_usd: 125000000,
+      tvs_percentage: 45.2,
+      max_magnitude: "48500.5",
+      utilization_rate: "0.85",
+      delegator_count: 1240,
+    },
+    {
+      strategy_id: "dummy-2",
+      strategy_name: "Lido Staked ETH",
+      strategy_symbol: "stETH",
+      tvs_usd: 85000000,
+      tvs_percentage: 30.8,
+      max_magnitude: "32000.2",
+      utilization_rate: "0.72",
+      delegator_count: 850,
+    },
+    {
+      strategy_id: "dummy-3",
+      strategy_name: "Rocket Pool ETH",
+      strategy_symbol: "rETH",
+      tvs_usd: 42000000,
+      tvs_percentage: 15.2,
+      max_magnitude: "15800.8",
+      utilization_rate: "0.91",
+      delegator_count: 420,
+    },
+    {
+      strategy_id: "dummy-4",
+      strategy_name: "Coinbase Wrapped Staked ETH",
+      strategy_symbol: "cbETH",
+      tvs_usd: 15000000,
+      tvs_percentage: 5.4,
+      max_magnitude: "5600.4",
+      utilization_rate: "0.64",
+      delegator_count: 210,
+    },
+    {
+      strategy_id: "dummy-5",
+      strategy_name: "Frax Ether",
+      strategy_symbol: "frxETH",
+      tvs_usd: 6500000,
+      tvs_percentage: 2.3,
+      max_magnitude: "2400.2",
+      utilization_rate: "0.58",
+      delegator_count: 95,
+    },
+    {
+      strategy_id: "dummy-6",
+      strategy_name: "Mantle Staked ETH",
+      strategy_symbol: "mETH",
+      tvs_usd: 3000000,
+      tvs_percentage: 1.1,
+      max_magnitude: "1100.1",
+      utilization_rate: "0.42",
+      delegator_count: 45,
+    },
+  ];
+
+  const tableData = isFree
+    ? DUMMY_STRATEGIES
+    : paginatedStrategies.map((s: OperatorStrategyListItem) => ({
+        ...s,
+        id: s.strategy_id,
+      }));
+
   // Pagination Handlers
   const totalPages = Math.ceil(totalStrategiesCount / pageSize);
   const handlePrevPage = () => setPage((p) => Math.max(1, p - 1));
@@ -177,51 +248,60 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
       </div>
 
       {/* TVS Distribution Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>TVS Distribution by Strategy</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DonutChart
-              data={pieChartData}
-              category="value"
-              index="name"
-              colors={chartColors}
-              valueFormatter={(value) =>
-                `$${value.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              }
-              height={300}
-            />
+      <ProGate
+        isLocked={isFree}
+        feature="TVS Distribution"
+        description="Unlock visual breakdown of TVS across all strategies, including percentage share and USD value distribution."
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>TVS Distribution by Strategy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <DonutChart
+                data={pieChartData}
+                category="value"
+                index="name"
+                colors={chartColors}
+                valueFormatter={(value) =>
+                  `$${value.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
+                }
+                height={300}
+              />
 
-            <div className="flex flex-col justify-center space-y-3">
-              <h4 className="font-semibold mb-2">Strategy Breakdown</h4>
-              {pieChartData.slice(0, 8).map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-sm">{item.name}</span>
+              <div className="flex flex-col justify-center space-y-3">
+                <h4 className="font-semibold mb-2">Strategy Breakdown</h4>
+                {pieChartData.slice(0, 8).map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-sm">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-medium block">
+                        ${item.value.toLocaleString()}
+                      </span>
+                      <span className="text-xs text-muted-foreground block">
+                        {item.percentage.toFixed(1)}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium block">
-                      ${item.value.toLocaleString()}
-                    </span>
-                    <span className="text-xs text-muted-foreground block">
-                      {item.percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </ProGate>
 
       {/* Strategies Table */}
       <ProGate
@@ -237,7 +317,7 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
               { key: "utilization_rate", displayName: "Utilization" },
               { key: "delegator_count", displayName: "Delegators" },
             ]}
-            data={paginatedStrategies.map((s: OperatorStrategyListItem) => {
+            data={tableData.map((s: any) => {
               const utilization = parseFloat(s.utilization_rate || "0");
 
               return {

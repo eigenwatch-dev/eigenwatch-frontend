@@ -32,7 +32,8 @@ export function ProfileSection() {
       setUser(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch {
+    } catch (err) {
+      console.error("[ProfileSection] Update failed:", err);
       // TODO: toast error
     } finally {
       setSaving(false);
@@ -131,7 +132,10 @@ export function ProfileSection() {
               {tierLabel[user?.tier.toLowerCase() || "free"] || "Free Plan"}
             </span>
             {user?.tier.toLowerCase() === "free" && (
-              <button className="text-xs text-blue-400 hover:underline">
+              <button
+                onClick={() => (window.location.hash = "subscription")}
+                className="text-xs text-blue-400 hover:underline"
+              >
                 Upgrade to Pro
               </button>
             )}

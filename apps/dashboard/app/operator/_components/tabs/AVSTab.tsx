@@ -56,17 +56,25 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
   }
 
   // Calculate metrics
-  const registeredCount = avsList.filter((avs) => avs.status === "registered").length;
+  const registeredCount = avsList.filter(
+    (avs) => avs.status === "registered",
+  ).length;
   const totalAllocatedUsd = avsList.reduce(
     (sum, avs) => sum + parseFloat(avs.total_allocated_usd || "0"),
-    0
+    0,
   );
-  const avgCommission = avsList.length > 0
-    ? avsList.reduce((s, a) => s + (a.effective_commission_bips || a.commission || 0), 0) / avsList.length / 100
-    : 0;
+  const avgCommission =
+    avsList.length > 0
+      ? avsList.reduce(
+          (s, a) => s + (a.effective_commission_bips || a.commission || 0),
+          0,
+        ) /
+        avsList.length /
+        100
+      : 0;
   const totalOperatorSets = avsList.reduce(
     (sum, avs) => sum + (avs.operator_set_count || avs.operator_sets || 0),
-    0
+    0,
   );
 
   // Format table data
@@ -75,13 +83,33 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
     status: avs.status || "unknown",
     days_registered: avs.days_registered || 0,
     operator_sets: avs.operator_set_count || avs.operator_sets || 0,
-    allocated_usd: avs.total_allocated_usd ? formatUSD(avs.total_allocated_usd) : "—",
+    allocated_usd: avs.total_allocated_usd
+      ? formatUSD(avs.total_allocated_usd)
+      : "—",
     commission: avs.effective_commission_pct
       ? `${avs.effective_commission_pct}%`
       : avs.effective_commission_bips
         ? `${(avs.effective_commission_bips / 100).toFixed(2)}%`
         : avs.commissions || "—",
   }));
+
+  const DUMMY_AVS_LIST = Array.from({ length: 6 }).map((_, i) => ({
+    avs_name: [
+      "EigenDA",
+      "AltLayer",
+      "Brevis",
+      "Eoracle",
+      "Lagrange",
+      "WitnessChain",
+    ][i],
+    status: "registered",
+    days_registered: 120 - i * 15,
+    operator_sets: 2,
+    allocated_usd: formatUSD(5000000 - i * 800000),
+    commission: `${(10 - i * 1).toFixed(2)}%`,
+  }));
+
+  const displayTableData = isFree ? DUMMY_AVS_LIST : tableData;
 
   return (
     <div className="space-y-6">
@@ -96,7 +124,11 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
         <StatCard
           title="Active Registrations"
           value={registeredCount}
-          subtitle={avsList.length > 0 ? `${((registeredCount / avsList.length) * 100).toFixed(0)}% active` : undefined}
+          subtitle={
+            avsList.length > 0
+              ? `${((registeredCount / avsList.length) * 100).toFixed(0)}% active`
+              : undefined
+          }
           icon={<CheckCircle2 className="h-5 w-5" />}
           tooltip="Number of AVS registrations that are currently active and earning rewards"
         />
@@ -124,7 +156,7 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
           heading="AVS Relationships"
           info="List of all AVS networks this operator is registered with. Each AVS may have different commission rates and allocation amounts."
         >
-          {tableData.length > 0 ? (
+          {displayTableData.length > 0 ? (
             <ReusableTable
               columns={[
                 { key: "avs_name", displayName: "AVS Name" },
@@ -137,14 +169,16 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
                 { key: "allocated_usd", displayName: "Allocated (USD)" },
                 { key: "commission", displayName: "Commission" },
               ]}
-              data={tableData}
+              data={displayTableData}
               tableFilters={{ title: "AVS Relationships" }}
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No AVS registrations found</p>
-              <p className="text-sm mt-1">This operator is not registered with any AVS yet.</p>
+              <p className="text-sm mt-1">
+                This operator is not registered with any AVS yet.
+              </p>
             </div>
           )}
         </SectionContainer>
@@ -169,11 +203,17 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
                 <span className="text-sm font-medium">Registration Status</span>
               </div>
               <div className="flex gap-2">
-                <Badge variant="outline" className="text-green-500 bg-green-500/10">
+                <Badge
+                  variant="outline"
+                  className="text-green-500 bg-green-500/10"
+                >
                   {registeredCount} Active
                 </Badge>
                 {avsList.length - registeredCount > 0 && (
-                  <Badge variant="outline" className="text-yellow-500 bg-yellow-500/10">
+                  <Badge
+                    variant="outline"
+                    className="text-yellow-500 bg-yellow-500/10"
+                  >
                     {avsList.length - registeredCount} Inactive
                   </Badge>
                 )}
@@ -190,10 +230,11 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
           Understanding AVS Relationships
         </h4>
         <p className="text-sm text-muted-foreground">
-          AVS (Actively Validated Services) are protocols that use EigenLayer for security.
-          Operators register with AVSs to provide validation services. Each registration may have
-          different commission rates - some set by the operator (PI commission) and some specific
-          to the AVS or operator set.
+          AVS (Actively Validated Services) are protocols that use EigenLayer
+          for security. Operators register with AVSs to provide validation
+          services. Each registration may have different commission rates - some
+          set by the operator (PI commission) and some specific to the AVS or
+          operator set.
         </p>
       </div>
     </div>
