@@ -6,14 +6,14 @@ const dashboardUrl =
   process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002";
 
 const navLinks = [
-  { label: "Dashboard", href: `${dashboardUrl}` },
-  { label: "Operator", href: `${dashboardUrl}/operator` },
+  { label: "Operators", href: `${dashboardUrl}/operator` },
   { label: "AVS", href: `${dashboardUrl}/avs` },
   { label: "Strategy", href: `${dashboardUrl}/strategy` },
+  { label: "Docs", href: "https://docs.eigenwatch.xyz" },
 ];
 
 import Link from "next/link";
-import { Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function Header() {
   return (
@@ -21,10 +21,12 @@ export default function Header() {
       logoHref="/"
       navLinks={navLinks}
       walletConnect={
-        <Link href={dashboardUrl}>
-          <button className="bg-[#155DFC] hover:bg-[#155DFC]/70 rounded-[10px] flex gap-[6px] px-[18px] py-[8px] text-white transition-colors">
-            <Wallet size={16} className="my-auto" />
-            <span className="text-[14px] font-medium">Connect Wallet</span>
+        <Link href={`${dashboardUrl}/operator`}>
+          <button className="bg-[#155DFC] hover:bg-[#1249CC] rounded-xl flex items-center gap-2 px-6 py-2.5 text-white transition-all duration-200 shadow-lg shadow-[#155DFC]/20">
+            <span className="text-sm sm:text-base font-semibold">
+              Get Started
+            </span>
+            <ArrowRight size={18} />
           </button>
         </Link>
       }

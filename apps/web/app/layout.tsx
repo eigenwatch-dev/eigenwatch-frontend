@@ -5,6 +5,7 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { ThemeProvider } from "@/contexts/theme-context";
 import WalletProvider from "../../../packages/ui/src/providers/wallet";
+import SmoothScrollProvider from "@/components/ui/smooth-scroll-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -93,7 +94,9 @@ export default async function RootLayout({
         <ThemeProvider>
           <WalletProvider>
             <Header />
-            <main className="min-h-screen pt-16.25">{children}</main>
+            <SmoothScrollProvider>
+              <main className="min-h-screen pt-16.25">{children}</main>
+            </SmoothScrollProvider>
             <Footer />
           </WalletProvider>
         </ThemeProvider>

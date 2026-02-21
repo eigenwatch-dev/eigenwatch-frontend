@@ -1,178 +1,172 @@
 "use client";
 
-import { motion } from "motion/react";
-import { ArrowUpRight, ArrowDownRight, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Shield, Layers, BarChart3 } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const operators = [
+gsap.registerPlugin(ScrollTrigger);
+
+const dashboardUrl =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002";
+
+const features = [
   {
-    name: "Eigen Yields",
-    id: "0x7232...",
-    avs: "EigenDA",
-    delegated: "45.2 ETH",
-    riskScore: 15,
-    change: -2,
-    riskLevel: "Low Risk",
+    icon: Shield,
+    title: "Risk Scoring",
+    description:
+      "Every operator scored across multiple risk dimensions with confidence intervals.",
+    color: "#00C950",
   },
   {
-    name: "StakeWise",
-    id: "0x8172...",
-    avs: "EigenDA",
-    delegated: "38.5 ETH",
-    riskScore: 42,
-    change: 1.5,
-    riskLevel: "Medium Risk",
+    icon: Layers,
+    title: "7 Analysis Tabs",
+    description:
+      "Overview, Strategies, AVS, Delegators, Allocations, Commission, and Risk Analysis.",
+    color: "#2B7FFF",
   },
   {
-    name: "Lido Finance",
-    id: "0x3341...",
-    avs: "Multiple AVS",
-    delegated: "18.8 ETH",
-    riskScore: 15,
-    change: -1,
-    riskLevel: "Low Risk",
-  },
-  {
-    name: "Rocket Pool",
-    id: "0x4123...",
-    avs: "EigenDA",
-    delegated: "10.2 ETH",
-    riskScore: 72,
-    change: 12,
-    riskLevel: "High Risk",
+    icon: BarChart3,
+    title: "Pro Insights",
+    description:
+      "Unlock detailed analytics, concentration metrics, and predictive indicators.",
+    color: "#AD46FF",
   },
 ];
 
 export default function OperatorDiscovery() {
-  const router = useRouter();
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(".discovery-content", {
+        scrollTrigger: {
+          trigger: ".discovery-content",
+          start: "top 80%",
+          toggleActions: "play none none none",
+        },
+        opacity: 0,
+        x: -30,
+        duration: 0.6,
+        ease: "power2.out",
+      });
+
+      if (imageRef.current) {
+        gsap.fromTo(
+          imageRef.current,
+          { y: 30, opacity: 0 },
+          {
+            scrollTrigger: {
+              trigger: imageRef.current,
+              start: "top 85%",
+              end: "bottom 20%",
+              scrub: 1,
+            },
+            y: -20,
+            opacity: 1,
+            ease: "none",
+          },
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="py-20 px-4 md:px-8 bg-[#09090B]">
+    <section
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#09090B]"
+    >
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-normal text-white mb-4"
-          >
-            Operator Discovery
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-[#9F9FA9] text-lg"
-          >
-            Browse operators with real-time risk assessment and performance
-            metrics
-          </motion.p>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Left: Content */}
+          <div className="discovery-content space-y-6 sm:space-y-8">
+            <div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-white mb-6 font-outfit leading-tight">
+                Deep-Dive Into Any Operator
+              </h2>
+              <p className="text-[#9F9FA9] text-base sm:text-lg lg:text-xl leading-relaxed font-medium">
+                Every operator on EigenLayer, analyzed and scored. Browse
+                real-time risk assessments, performance metrics, and delegation
+                data — all in one place.
+              </p>
+            </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="bg-[#18181B80] border border-[#27272A80] rounded-2xl overflow-hidden"
-        >
-          <div className="p-6 border-b border-[#27272A80]">
-            <h3 className="text-white font-medium">Your Delegated Operators</h3>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-[#71717A] border-b border-[#27272A80]">
-                  <th className="p-6 font-medium">Operator</th>
-                  <th className="p-6 font-medium">ID</th>
-                  <th className="p-6 font-medium">AVS</th>
-                  <th className="p-6 font-medium">Delegated</th>
-                  <th className="p-6 font-medium">Risk Score</th>
-                  <th className="p-6 font-medium">Change</th>
-                  <th className="p-6 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#27272A80]">
-                {operators.map((op, index) => (
-                  <tr
-                    key={index}
-                    className="text-white hover:bg-[#27272A40] transition-colors"
+            <div className="space-y-4 sm:space-y-5">
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-start gap-3 sm:gap-4">
+                  <div
+                    className="rounded-lg w-9 h-9 sm:w-10 sm:h-10 border flex items-center justify-center shrink-0 mt-0.5"
+                    style={{
+                      borderColor: `${feature.color}4D`,
+                      backgroundColor: `${feature.color}1A`,
+                      color: feature.color,
+                    }}
                   >
-                    <td className="p-6 font-medium">{op.name}</td>
-                    <td className="p-6 text-[#A1A1AA]">{op.id}</td>
-                    <td className="p-6 text-[#A1A1AA]">{op.avs}</td>
-                    <td className="p-6 font-medium">{op.delegated}</td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">{op.riskScore}%</span>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] uppercase font-medium
-                            ${
-                              op.riskLevel === "Low Risk"
-                                ? "bg-[#032E15] text-[#00C950]"
-                                : op.riskLevel === "Medium Risk"
-                                  ? "bg-[#461901] text-[#FE9A00]"
-                                  : "bg-[#460808] text-[#FF3B30]"
-                            }`}
-                        >
-                          {op.riskLevel}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <div
-                        className={`flex items-center gap-1 text-xs font-medium
-                          ${op.change < 0 ? "text-[#00C950]" : "text-[#FF3B30]"}`}
-                      >
-                        {op.change < 0 ? (
-                          <>
-                            <ArrowDownRight size={14} />
-                            <span>{Math.abs(op.change)}% this week</span>
-                          </>
-                        ) : (
-                          <>
-                            <ArrowUpRight size={14} />
-                            <span>+{op.change}% this week</span>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-6 text-right">
-                      <button className="text-[#A1A1AA] hover:text-white text-xs transition-colors flex items-center gap-2">
-                        <span>View</span>
-                        <ArrowRight size={20} className="-rotate-45" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    <feature.icon
+                      size={16}
+                      className="sm:w-[18px] sm:h-[18px]"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium text-sm sm:text-base mb-0.5 sm:mb-1">
+                      {feature.title}
+                    </h4>
+                    <p className="text-[#9F9FA9] text-xs sm:text-sm leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          <div className="p-4 border-t border-[#27272A80] flex justify-between items-center text-xs text-[#71717A]">
-            <span>Showing 4 of 1,247 operators</span>
-            <button
-              onClick={() => router.push("/operator")}
-              className="px-4 py-2 rounded-lg border border-[#27272A] hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors"
+            <Link
+              href={`${dashboardUrl}/operator`}
+              className="inline-flex items-center gap-2 bg-[#155DFC] hover:bg-[#1249CC] text-white rounded-xl font-medium transition-colors duration-200 px-6 sm:px-8 py-3 text-sm sm:text-base"
             >
-              View All Operators
-            </button>
+              <span>Explore Operators</span>
+              <ArrowRight size={18} />
+            </Link>
           </div>
-        </motion.div>
 
-        <div className="flex justify-center gap-6 mt-8 text-[10px] text-[#71717A]">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#00C950]"></span>
-            <span>Low Risk (0-20)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#FE9A00]"></span>
-            <span>Medium Risk (21-60)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#FF3B30]"></span>
-            <span>High Risk (61-100)</span>
+          {/* Right: Product Screenshot */}
+          <div
+            ref={imageRef}
+            className="relative max-w-2xl mx-auto lg:max-w-none"
+          >
+            {/* Browser frame */}
+            <div className="rounded-xl border border-white/10 bg-[#18181B] overflow-hidden shadow-2xl">
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#1C1C1F]">
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57] shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E] shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#28C840] shadow-sm" />
+                </div>
+                <div className="flex-1 mx-4 sm:mx-10 md:mx-16">
+                  <div className="bg-[#09090B] rounded-md px-3 py-1.5 text-[10px] sm:text-xs text-[#71717A] text-center font-mono truncate border border-white/5">
+                    dashboard.eigenwatch.xyz/operator
+                  </div>
+                </div>
+              </div>
+
+              {/* Screenshot */}
+              <Image
+                src="/images/operatorlist.png"
+                alt="EigenWatch Operator Dashboard showing real-time risk scores, AVS participation, and delegation data"
+                width={1200}
+                height={800}
+                className="w-full h-auto"
+                priority={false}
+              />
+            </div>
+
+            {/* Ambient glow behind the screenshot */}
+            <div className="absolute -inset-6 sm:-inset-8 -z-10 bg-[radial-gradient(ellipse_at_center,_rgba(21,93,252,0.08)_0%,_transparent_70%)]" />
           </div>
         </div>
       </div>
