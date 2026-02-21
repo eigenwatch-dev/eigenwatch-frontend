@@ -105,11 +105,15 @@ export function ProGate({
   }
 
   return (
-    <div className="relative">
-      <div className={`${blurClass} pointer-events-none select-none`}>
+    <div
+      className={`relative ${isLocked && variant === "overlay" ? "min-h-[400px]" : ""}`}
+    >
+      <div
+        className={`${blurClass} pointer-events-none select-none ${isLocked && variant === "overlay" ? "min-h-[400px]" : ""}`}
+      >
         {children}
       </div>
-      <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+      <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px] z-10">
         <ProUpgradeCard feature={feature} description={description} />
       </div>
     </div>
@@ -120,6 +124,14 @@ export function ProBadge() {
   return (
     <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20 text-[10px]">
       PRO
+    </Badge>
+  );
+}
+
+export function ComingSoonBadge() {
+  return (
+    <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px]">
+      COMING SOON
     </Badge>
   );
 }

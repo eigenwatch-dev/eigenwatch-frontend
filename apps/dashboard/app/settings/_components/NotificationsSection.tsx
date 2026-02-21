@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { getPreferences, updatePreferences } from "@/lib/auth-api";
 import { Switch } from "@/components/ui/switch";
-import { ProBadge } from "@/components/shared/ProGate";
+import { ProBadge, ComingSoonBadge } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
 import { UserPreferences } from "@/types/auth.types";
 import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
@@ -106,18 +106,21 @@ export function NotificationsSection() {
               checked={prefs.risk_alerts_operator_changes}
               onChange={() => handleToggle("risk_alerts_operator_changes")}
               disabled={!hasVerifiedEmail}
+              comingSoon
             />
             <ToggleRow
               label="Slashing events detected"
               checked={prefs.risk_alerts_slashing}
               onChange={() => handleToggle("risk_alerts_slashing")}
               disabled={!hasVerifiedEmail}
+              comingSoon
             />
             <ToggleRow
               label="Significant TVS changes (>10%)"
               checked={prefs.risk_alerts_tvs_changes}
               onChange={() => handleToggle("risk_alerts_tvs_changes")}
               disabled={!hasVerifiedEmail}
+              comingSoon
             />
           </div>
         </div>
@@ -134,12 +137,14 @@ export function NotificationsSection() {
               checked={prefs.watchlist_daily_summary}
               onChange={() => handleToggle("watchlist_daily_summary")}
               disabled={!hasVerifiedEmail || isFree}
+              comingSoon
             />
             <ToggleRow
               label="Watchlist operator status changes"
               checked={prefs.watchlist_status_changes}
               onChange={() => handleToggle("watchlist_status_changes")}
               disabled={!hasVerifiedEmail || isFree}
+              comingSoon
             />
           </div>
         </div>
@@ -191,23 +196,28 @@ function ToggleRow({
   checked,
   onChange,
   disabled,
+  comingSoon,
 }: {
   label: string;
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
+  comingSoon?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span
-        className={`text-sm ${disabled ? "text-muted-foreground" : "text-foreground"}`}
-      >
-        {label}
-      </span>
+      <div className="flex items-center gap-2">
+        <span
+          className={`text-sm ${disabled || comingSoon ? "text-muted-foreground" : "text-foreground"}`}
+        >
+          {label}
+        </span>
+        {comingSoon && <ComingSoonBadge />}
+      </div>
       <Switch
-        checked={checked}
+        checked={comingSoon ? false : checked}
         onCheckedChange={onChange}
-        disabled={disabled}
+        disabled={disabled || comingSoon}
       />
     </div>
   );

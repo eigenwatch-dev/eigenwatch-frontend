@@ -46,6 +46,49 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
   const active = delegators?.summary?.active_delegators || 0;
   const operatorTotalTvs = stats?.tvs?.total || 1; // Avoid division by zero
 
+  const DUMMY_DELEGATORS = Array.from({ length: 6 }).map((_, i) => ({
+    staker_address: `0x${i}d80...${i}b2d`,
+    total_tvs: (1500000 - i * 200000).toString(),
+    shares_percentage: `${(5 - i * 0.5).toFixed(2)}%`,
+    strategies: Array.from({ length: 3 }),
+    delegated_at: new Date(Date.now() - i * 86400000 * 10).toISOString(),
+    is_delegated: true,
+  }));
+
+  const displayData = isFree
+    ? DUMMY_DELEGATORS.map((delegator) => ({
+        ...delegator,
+        staker_address: delegator.staker_address,
+        total_tvs: formatUSD(parseFloat(delegator.total_tvs)),
+        shares_percentage: delegator.shares_percentage,
+        strategies_count: "3 Strategies",
+        delegated_at: new Date(delegator.delegated_at).toLocaleDateString(),
+        status: <span className="text-green-500">Active</span>,
+      }))
+    : delegatorsList.map((delegator) => {
+        const delegatorTvs = parseFloat(delegator.total_tvs || "0");
+        const percentage =
+          operatorTotalTvs > 0 ? (delegatorTvs / operatorTotalTvs) * 100 : 0;
+
+        return {
+          ...delegator,
+          staker_address: formatAddress(delegator.staker_address),
+          total_tvs: formatUSD(delegatorTvs),
+          shares_percentage: `${percentage.toFixed(4)}%`,
+          strategies_count: `${delegator.strategies.length} Strategies`,
+          delegated_at: new Date(delegator.delegated_at).toLocaleDateString(),
+          status: (
+            <span
+              className={
+                delegator.is_delegated ? "text-green-500" : "text-red-500"
+              }
+            >
+              {delegator.is_delegated ? "Active" : "Inactive"}
+            </span>
+          ),
+        };
+      });
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -64,59 +107,37 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
         feature="Delegator List"
         description="Unlock the full delegator list — see individual staker addresses, TVS amounts, stake percentages, and delegation history."
       >
-      <SectionContainer heading="Delegator List">
-        <ReusableTable
-          columns={[
-            { key: "staker_address", displayName: "Staker Address" },
-            { key: "total_tvs", displayName: "TVS (USD)" },
-            { key: "shares_percentage", displayName: "% Staked" },
-            { key: "strategies_count", displayName: "Strategies" },
-            { key: "delegated_at", displayName: "Delegation Date" },
-            { key: "status", displayName: "Status" },
-          ]}
-          data={delegatorsList.map((delegator) => {
-            const delegatorTvs = parseFloat(delegator.total_tvs || "0");
-            const percentage =
-              operatorTotalTvs > 0
-                ? (delegatorTvs / operatorTotalTvs) * 100
-                : 0;
-
-            return {
-              ...delegator,
-              staker_address: formatAddress(delegator.staker_address),
-              total_tvs: formatUSD(delegatorTvs),
-              shares_percentage: `${percentage.toFixed(4)}%`,
-              strategies_count: `${delegator.strategies.length} Strategies`,
-              delegated_at: new Date(
-                delegator.delegated_at,
-              ).toLocaleDateString(),
-              status: (
-                <span
-                  className={
-                    delegator.is_delegated ? "text-green-500" : "text-red-500"
+        <SectionContainer heading="Delegator List">
+          <ReusableTable
+            columns={[
+              { key: "staker_address", displayName: "Staker Address" },
+              { key: "total_tvs", displayName: "TVS (USD)" },
+              { key: "shares_percentage", displayName: "% Staked" },
+              { key: "strategies_count", displayName: "Strategies" },
+              { key: "delegated_at", displayName: "Delegation Date" },
+              { key: "status", displayName: "Status" },
+            ]}
+            data={displayData}
+            tableFilters={{ title: "Delegator List" }}
+            paginationProps={
+              isFree
+                ? undefined
+                : {
+                    pagination: {
+                      total: delegators?.pagination?.total || 0,
+                      offset,
+                      limit,
+                    },
+                    onOffsetChange: setOffset,
+                    onLimitChange: (newLimit) => {
+                      setLimit(newLimit);
+                      setOffset(0);
+                    },
+                    isLoading: isDelegatorsLoading,
                   }
-                >
-                  {delegator.is_delegated ? "Active" : "Inactive"}
-                </span>
-              ),
-            };
-          })}
-          tableFilters={{ title: "Delegator List" }}
-          paginationProps={{
-            pagination: {
-              total: delegators?.pagination?.total || 0,
-              offset,
-              limit,
-            },
-            onOffsetChange: setOffset,
-            onLimitChange: (newLimit) => {
-              setLimit(newLimit);
-              setOffset(0);
-            },
-            isLoading: isDelegatorsLoading,
-          }}
-        />
-      </SectionContainer>
+            }
+          />
+        </SectionContainer>
       </ProGate>
     </div>
   );

@@ -92,6 +92,22 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
       : 0;
   const isAboveMedian = piCommission > medianCommission;
 
+  const DUMMY_COMMISSIONS = Array.from({ length: 6 }).map((_, i) => ({
+    avs_name: [
+      "EigenDA",
+      "AltLayer",
+      "Brevis",
+      "Eoracle",
+      "Lagrange",
+      "WitnessChain",
+    ][i],
+    commission_rate: `${(10 - i * 1).toFixed(2)}%`,
+    stability: "Stable",
+    rate_age: `${30 + i * 5} days`,
+  }));
+
+  const displayAvsTableData = isFree ? DUMMY_COMMISSIONS : avsTableData;
+
   return (
     <div className="space-y-6">
       {/* Main Commission Card */}
@@ -197,7 +213,9 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground">Median</p>
                   <p className="font-medium">
-                    {formatCommission(benchmarks.median_pi_commission_bips || 0)}
+                    {formatCommission(
+                      benchmarks.median_pi_commission_bips || 0,
+                    )}
                   </p>
                 </div>
                 <div className="text-center">
@@ -216,7 +234,7 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
           heading="Per-AVS Commissions"
           info="Commission rates may vary by AVS. Some AVS networks set their own commission rates that override the operator's default PI commission."
         >
-          {avsTableData.length > 0 ? (
+          {displayAvsTableData.length > 0 ? (
             <ReusableTable
               columns={[
                 { key: "avs_name", displayName: "AVS" },
@@ -224,7 +242,7 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
                 { key: "stability", displayName: "Stability" },
                 { key: "rate_age", displayName: "Rate Age" },
               ]}
-              data={avsTableData}
+              data={displayAvsTableData}
               tableFilters={{ title: "Per-AVS Commissions" }}
             />
           ) : (
