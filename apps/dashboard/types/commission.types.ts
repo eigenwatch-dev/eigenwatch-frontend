@@ -28,6 +28,7 @@ export interface CommissionOverview {
 export interface CommissionByAVS {
   avs_id: string;
   avs_name: string;
+  avs_logo?: string;
   current_bips: number;
   activated_at: string;
   upcoming_bips: number | null;

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
@@ -37,6 +39,8 @@ interface CommissionTabProps {
 
 export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
   const { isFree } = useProAccess();
+  const [commOffset, setCommOffset] = useState(0);
+  const [commLimit, setCommLimit] = useState(10);
   const { data: commission, isLoading } = useOperatorCommission(operatorId);
 
   if (isLoading) {
@@ -69,8 +73,18 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
   const annualCostPer1000 = ((1000 * 0.05 * piCommission) / 10000).toFixed(2);
 
   // Format AVS data for table
-  const avsTableData = (commission?.avs_commissions || []).map((avs) => ({
-    avs_name: avs.avs_name,
+  const avsTableData = (commission?.avs_commissions || []).map((avs: any) => ({
+    avs_name: (
+      <div className="flex items-center gap-2">
+        <Avatar className="size-6">
+          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />}
+          <AvatarFallback className="text-[10px]">
+            {(avs.avs_name || "?").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span>{avs.avs_name || "Unknown AVS"}</span>
+      </div>
+    ),
     commission_rate: formatCommission(avs.current_bips),
     stability:
       avs.total_changes === 0 ? "Stable" : `${avs.total_changes} changes`,
@@ -106,7 +120,8 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
     rate_age: `${30 + i * 5} days`,
   }));
 
-  const displayAvsTableData = isFree ? DUMMY_COMMISSIONS : avsTableData;
+  const paginatedAvsTableData = avsTableData.slice(commOffset, commOffset + commLimit);
+  const displayAvsTableData = isFree ? DUMMY_COMMISSIONS : paginatedAvsTableData;
 
   return (
     <div className="space-y-6">
@@ -244,6 +259,23 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
               ]}
               data={displayAvsTableData}
               tableFilters={{ title: "Per-AVS Commissions" }}
+              paginationProps={
+                isFree
+                  ? undefined
+                  : {
+                      pagination: {
+                        total: avsTableData.length,
+                        offset: commOffset,
+                        limit: commLimit,
+                      },
+                      onOffsetChange: setCommOffset,
+                      onLimitChange: (newLimit) => {
+                        setCommLimit(newLimit);
+                        setCommOffset(0);
+                      },
+                      isLoading,
+                    }
+              }
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">

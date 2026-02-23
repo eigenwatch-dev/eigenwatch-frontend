@@ -20,7 +20,7 @@ interface DelegatorsTabProps {
 export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
   const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(10);
 
   const { data: delegators, isLoading: isDelegatorsLoading } =
     useOperatorDelegators(operatorId, {

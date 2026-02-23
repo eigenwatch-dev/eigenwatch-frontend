@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { UtilizationBadge } from "@/components/shared/data/UtilizationBadge";
@@ -26,6 +28,8 @@ interface AllocationsTabProps {
 
 export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
   const { isFree } = useProAccess();
+  const [allocOffset, setAllocOffset] = useState(0);
+  const [allocLimit, setAllocLimit] = useState(10);
   const { data: allocations, isLoading } = useAllocationsOverview(operatorId);
 
   if (isLoading) {
@@ -70,7 +74,17 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
 
   // Format AVS data for display
   const avsData = (allocations?.by_avs || []).map((avs: AllocationByAVS) => ({
-    avs_name: avs.avs_name || avs.avsName || "Unknown AVS",
+    avs_name: (
+      <div className="flex items-center gap-2">
+        <Avatar className="size-6">
+          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || avs.avsName || "AVS"} />}
+          <AvatarFallback className="text-[10px]">
+            {(avs.avs_name || avs.avsName || "?").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span>{avs.avs_name || avs.avsName || "Unknown AVS"}</span>
+      </div>
+    ),
     allocated_usd: avs.total_allocated_usd
       ? formatUSD(avs.total_allocated_usd)
       : "—",
@@ -94,7 +108,8 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
     strategies: 3,
   }));
 
-  const displayAvsData = isFree ? DUMMY_AVS_ALLOCATIONS : avsData;
+  const paginatedAvsData = avsData.slice(allocOffset, allocOffset + allocLimit);
+  const displayAvsData = isFree ? DUMMY_AVS_ALLOCATIONS : paginatedAvsData;
 
   return (
     <div className="space-y-6">
@@ -192,6 +207,23 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
               ]}
               data={displayAvsData}
               tableFilters={{ title: "Allocations by AVS" }}
+              paginationProps={
+                isFree
+                  ? undefined
+                  : {
+                      pagination: {
+                        total: avsData.length,
+                        offset: allocOffset,
+                        limit: allocLimit,
+                      },
+                      onOffsetChange: setAllocOffset,
+                      onLimitChange: (newLimit) => {
+                        setAllocLimit(newLimit);
+                        setAllocOffset(0);
+                      },
+                      isLoading,
+                    }
+              }
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">

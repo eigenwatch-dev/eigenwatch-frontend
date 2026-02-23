@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, TrendingUp, CheckCircle2, Clock, Layers } from "lucide-react";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
@@ -35,7 +36,9 @@ interface AVSRelationship {
 
 export const AVSTab = ({ operatorId }: AVSTabProps) => {
   const { isFree } = useProAccess();
-  const { data: avsData, isLoading } = useOperatorAVS(operatorId);
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const { data: avsData, isLoading } = useOperatorAVS(operatorId, { limit, offset });
   const avsList: AVSRelationship[] = avsData?.avs_relationships || [];
 
   if (isLoading) {
@@ -79,7 +82,17 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
 
   // Format table data
   const tableData = avsList.map((avs) => ({
-    avs_name: avs.avs_name || "Unknown AVS",
+    avs_name: (
+      <div className="flex items-center gap-2">
+        <Avatar className="size-6">
+          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />}
+          <AvatarFallback className="text-[10px]">
+            {(avs.avs_name || "?").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span>{avs.avs_name || "Unknown AVS"}</span>
+      </div>
+    ),
     status: avs.status || "unknown",
     days_registered: avs.days_registered || 0,
     operator_sets: avs.operator_set_count || avs.operator_sets || 0,
@@ -171,6 +184,23 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
               ]}
               data={displayTableData}
               tableFilters={{ title: "AVS Relationships" }}
+              paginationProps={
+                isFree
+                  ? undefined
+                  : {
+                      pagination: {
+                        total: avsData?.pagination?.total || 0,
+                        offset,
+                        limit,
+                      },
+                      onOffsetChange: setOffset,
+                      onLimitChange: (newLimit) => {
+                        setLimit(newLimit);
+                        setOffset(0);
+                      },
+                      isLoading,
+                    }
+              }
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
