@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { getNonce, verifySignature } from "@/lib/auth-api";
+import { setAuthCookie } from "@/actions/utils";
 
 export function SignStep() {
   const { address, isConnected } = useAccount();
@@ -44,6 +45,7 @@ export function SignStep() {
       const data = await verifySignature(address, signature, nonce);
 
       setAccessToken(data.tokens.access_token);
+      await setAuthCookie(data.tokens.access_token);
       setUser(data.user);
 
       // Check email status to decide next step

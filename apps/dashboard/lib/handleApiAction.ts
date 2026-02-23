@@ -5,6 +5,7 @@
 import api from "@/lib/api";
 import { handleSuccess, handleError } from "@/lib/utils";
 import { ApiResponse, AppApiResponse } from "@/types/api.types";
+import { getAccessToken } from "@/actions/utils";
 
 interface ApiActionOptions {
   endpoint: string;
@@ -20,10 +21,17 @@ export async function handleApiAction<T = any>({
   successMessage,
 }: ApiActionOptions): Promise<AppApiResponse<ApiResponse<T>>> {
   try {
+    // Read the access token from the httpOnly cookie to forward auth to the backend
+    const accessToken = await getAccessToken();
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     const response =
       method === "get"
-        ? await api.get(endpoint)
-        : await api[method](endpoint, body);
+        ? await api.get(endpoint, { headers })
+        : await api[method](endpoint, body, { headers });
 
     const data = response.data;
 
