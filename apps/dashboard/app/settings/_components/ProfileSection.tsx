@@ -41,15 +41,15 @@ export function ProfileSection() {
   };
 
   const tierLabel: Record<string, string> = {
-    free: "Free Plan",
-    pro: "Pro Plan",
-    enterprise: "Enterprise Plan",
+    FREE: "Free Plan",
+    PRO: "Pro Plan",
+    ENTERPRISE: "Enterprise Plan",
   };
 
   const tierColor: Record<string, string> = {
-    free: "text-muted-foreground bg-muted",
-    pro: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    enterprise: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+    FREE: "text-muted-foreground bg-muted",
+    PRO: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+    ENTERPRISE: "text-purple-400 bg-purple-500/10 border-purple-500/20",
   };
 
   return (
@@ -127,11 +127,11 @@ export function ProfileSection() {
           </label>
           <div className="flex items-center gap-3">
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${tierColor[user?.tier.toLowerCase() || "free"] || tierColor.free}`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${tierColor[user?.tier || "FREE"] || tierColor.FREE}`}
             >
-              {tierLabel[user?.tier.toLowerCase() || "free"] || "Free Plan"}
+              {tierLabel[user?.tier || "FREE"] || "Free Plan"}
             </span>
-            {user?.tier.toLowerCase() === "free" && (
+            {user?.tier === "FREE" && (
               <button
                 onClick={() => (window.location.hash = "subscription")}
                 className="text-xs text-blue-400 hover:underline"

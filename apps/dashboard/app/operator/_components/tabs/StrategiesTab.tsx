@@ -11,6 +11,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { StatCard } from "@/components/shared/data/StatCard";
+import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { DonutChart } from "@/components/shared/charts/DonutChart";
 import { ProGate } from "@/components/shared/ProGate";
@@ -41,8 +42,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   const { isFree } = useProAccess();
 
   // Pagination State
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(10);
 
   // Fetch Stats (for Charts & Summary) - keeps full distribution data
   const { data: statsData, isLoading: isStatsLoading } =
@@ -51,8 +52,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   // Fetch Strategies (Paginated for Table)
   const { data: strategiesData, isLoading: isStrategiesLoading } =
     useOperatorStrategies(operatorId, {
-      limit: pageSize,
-      offset: (page - 1) * pageSize,
+      limit,
+      offset,
       sort_by: "tvs", // Default sort
     });
 
@@ -134,7 +135,12 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   // Prepare data for pie chart with dynamic colors
   // Group strategies below 3% into "Others" for chart readability
   const OTHERS_THRESHOLD = 3;
-  const majorStrategies: { name: string; value: number; percentage: number; color: string }[] = [];
+  const majorStrategies: {
+    name: string;
+    value: number;
+    percentage: number;
+    color: string;
+  }[] = [];
   let othersValue = 0;
   let othersPercentage = 0;
   let othersCount = 0;
@@ -145,7 +151,9 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
         name: strategy.token?.symbol || "Unknown",
         value: strategy.tvs_usd,
         percentage: strategy.tvs_percentage,
-        color: stringToColor(strategy.token?.symbol || strategy.strategy_address),
+        color: stringToColor(
+          strategy.token?.symbol || strategy.strategy_address,
+        ),
       });
     } else {
       othersValue += strategy.tvs_usd;
@@ -237,11 +245,6 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
         id: s.strategy_id,
       }));
 
-  // Pagination Handlers
-  const totalPages = Math.ceil(totalStrategiesCount / pageSize);
-  const handlePrevPage = () => setPage((p) => Math.max(1, p - 1));
-  const handleNextPage = () => setPage((p) => Math.min(totalPages, p + 1));
-
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -296,7 +299,13 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                   })}`
                 }
                 height={300}
-                centerLabel={totalTVS >= 1_000_000 ? `$${(totalTVS / 1_000_000).toFixed(1)}M` : totalTVS >= 1_000 ? `$${(totalTVS / 1_000).toFixed(1)}K` : `$${totalTVS.toFixed(0)}`}
+                centerLabel={
+                  totalTVS >= 1_000_000
+                    ? `$${(totalTVS / 1_000_000).toFixed(1)}M`
+                    : totalTVS >= 1_000
+                      ? `$${(totalTVS / 1_000).toFixed(1)}K`
+                      : `$${totalTVS.toFixed(0)}`
+                }
                 centerSubLabel="Total TVS"
               />
 
@@ -315,10 +324,16 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                       <span className="text-sm">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-sm font-medium block" style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <span
+                        className="text-sm font-medium block"
+                        style={{ fontVariantNumeric: "tabular-nums" }}
+                      >
                         ${item.value.toLocaleString()}
                       </span>
-                      <span className="text-xs text-muted-foreground block" style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <span
+                        className="text-xs text-muted-foreground block"
+                        style={{ fontVariantNumeric: "tabular-nums" }}
+                      >
                         {item.percentage.toFixed(1)}%
                       </span>
                     </div>
@@ -336,7 +351,7 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
         feature="Strategy Details"
         description="Unlock the full strategy table with exact amounts, share percentages, and delegator counts per strategy."
       >
-        <div className="space-y-4">
+        <SectionContainer heading="All Strategies">
           <ReusableTable
             columns={[
               { key: "token", displayName: "Strategy" },
@@ -353,10 +368,13 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                 max_magnitude: (
                   <div className="space-y-1">
                     <p className="font-medium">
-                      {parseFloat(s.max_magnitude).toLocaleString(undefined, {
-                        minimumFractionDigits: 4,
-                        maximumFractionDigits: 4,
-                      })}{" "}
+                      {parseFloat(s.max_magnitude || "0").toLocaleString(
+                        undefined,
+                        {
+                          minimumFractionDigits: 4,
+                          maximumFractionDigits: 4,
+                        },
+                      )}{" "}
                       {s.strategy_symbol}
                     </p>
                   </div>
@@ -392,65 +410,25 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
               };
             })}
             tableFilters={{ title: "All Strategies" }}
+            paginationProps={
+              isFree
+                ? undefined
+                : {
+                    pagination: {
+                      total: totalStrategiesCount,
+                      offset,
+                      limit,
+                    },
+                    onOffsetChange: setOffset,
+                    onLimitChange: (newLimit) => {
+                      setLimit(newLimit);
+                      setOffset(0);
+                    },
+                    isLoading: isStrategiesLoading,
+                  }
+            }
           />
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-2">
-              <div className="flex-1 text-sm text-muted-foreground">
-                Showing {(page - 1) * pageSize + 1} to{" "}
-                {Math.min(page * pageSize, totalStrategiesCount)} of{" "}
-                {totalStrategiesCount} strategies
-              </div>
-              <div className="flex items-center space-x-6 lg:space-x-8">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium">Rows per page</p>
-                  <Select
-                    value={`${pageSize}`}
-                    onValueChange={(value) => {
-                      setPageSize(Number(value));
-                      setPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[70px]">
-                      <SelectValue placeholder={pageSize} />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                      {[10, 20, 30, 40, 50].map((pageSize) => (
-                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                  Page {page} of {totalPages}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handlePrevPage()}
-                    disabled={page <= 1 || isStrategiesLoading}
-                  >
-                    <span className="sr-only">Go to previous page</span>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleNextPage()}
-                    disabled={page >= totalPages || isStrategiesLoading}
-                  >
-                    <span className="sr-only">Go to next page</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        </SectionContainer>
       </ProGate>
     </div>
   );

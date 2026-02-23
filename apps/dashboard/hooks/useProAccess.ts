@@ -9,11 +9,11 @@ export function useProAccess() {
 
   return {
     isPro:
-      tier.toLocaleLowerCase() === "pro" ||
-      tier.toLocaleLowerCase() === "enterprise",
+      tier.toLocaleUpperCase() === "PRO" ||
+      tier.toLocaleUpperCase() === "ENTERPRISE",
     isFree:
-      tier.toLocaleLowerCase() === "free" ||
-      tier.toLocaleLowerCase() === "anonymous" ||
+      tier.toLocaleUpperCase() === "FREE" ||
+      tier.toLocaleUpperCase() === "ANONYMOUS" ||
       !isAuthenticated,
     tier,
     isAuthenticated,

@@ -25,14 +25,14 @@ export function UserMenu() {
     : "";
 
   const tierLabel =
-    tier === "pro"
+    tier === "PRO"
       ? "Pro Plan"
-      : tier === "enterprise"
+      : tier === "ENTERPRISE"
         ? "Enterprise"
         : "Free Plan";
 
   const tierColor =
-    tier === "pro" || tier === "enterprise"
+    tier === "PRO" || tier === "ENTERPRISE"
       ? "bg-purple-500/10 text-purple-500 border-purple-500/20"
       : "bg-muted text-muted-foreground border-border";
 
@@ -56,10 +56,7 @@ export function UserMenu() {
           <span className="font-mono text-xs">{truncated}</span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 bg-card border-border"
-      >
+      <DropdownMenuContent align="end" className="w-48 bg-card border-border">
         <div className="px-2 py-1.5">
           <Badge className={`text-[10px] ${tierColor}`}>{tierLabel}</Badge>
         </div>
