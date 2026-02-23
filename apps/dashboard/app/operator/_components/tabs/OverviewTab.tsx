@@ -36,7 +36,6 @@ function sampleData<T>(data: T[], targetPoints: number = 30): T[] {
 function formatDateForChart(dateStr: string, isLongRange: boolean): string {
   const date = new Date(dateStr);
   if (isLongRange) {
-    // For longer ranges, show abbreviated month and day
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -46,6 +45,20 @@ function formatDateForChart(dateStr: string, isLongRange: boolean): string {
     month: "short",
     day: "numeric",
   });
+}
+
+// Compact number formatter for Y-axis labels (e.g., 1.2K, 3.5M)
+function compactNumber(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  if (value >= 1) return value.toFixed(1);
+  if (value > 0) return value.toFixed(2);
+  return "0";
+}
+
+// Integer formatter for count axes (delegators, AVS)
+function integerFormat(value: number): string {
+  return Math.floor(value).toLocaleString();
 }
 
 const OverviewTab = ({ operator }: OverviewTabProps) => {
@@ -223,7 +236,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
             index="date"
             categories={["tvs"]}
             colors={["hsl(var(--chart-1))"]}
-            valueFormatter={(value) => `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ETH`}
+            valueFormatter={(value) => `${compactNumber(value)} ETH`}
             height={300}
           />
         ) : (
@@ -270,6 +283,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 index="date"
                 categories={["delegators"]}
                 colors={["hsl(var(--chart-2))"]}
+                valueFormatter={integerFormat}
                 height={200}
               />
             </div>
@@ -309,6 +323,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 index="date"
                 categories={["avs"]}
                 colors={["hsl(var(--chart-3))"]}
+                valueFormatter={integerFormat}
                 height={200}
               />
             </div>

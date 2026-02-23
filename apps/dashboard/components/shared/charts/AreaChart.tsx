@@ -47,7 +47,7 @@ export function AreaChart({
                 <stop
                   offset="5%"
                   stopColor={colors[i % colors.length]}
-                  stopOpacity={0.3}
+                  stopOpacity={0.15}
                 />
                 <stop
                   offset="95%"
@@ -59,24 +59,25 @@ export function AreaChart({
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            className="stroke-muted/20"
+            stroke="#FFFFFF0D"
             vertical={false}
           />
           <XAxis
             dataKey={index}
-            className="text-xs font-medium"
-            tick={{ fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fill: "#6B7280", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            dy={10}
+            tickMargin={12}
+            interval="preserveStartEnd"
+            minTickGap={40}
           />
           <YAxis
-            className="text-xs font-medium"
-            tick={{ fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fill: "#6B7280", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             tickFormatter={valueFormatter}
-            width={60}
+            tickMargin={8}
+            width={80}
           />
           <Tooltip
             content={<ChartTooltip valueFormatter={valueFormatter} />}

@@ -17,15 +17,15 @@ export function ChartTooltip({
 }: ChartTooltipProps) {
   if (active && payload && payload.length) {
     return (
-      <Card className="border-border/50 bg-background/95 backdrop-blur-sm shadow-xl">
-        <CardHeader className="p-2 border-b border-border/50">
+      <Card className="border border-border bg-card shadow-lg">
+        <CardHeader className="p-2 border-b border-border">
           <CardTitle className="text-xs font-medium text-muted-foreground">
             {label}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 min-w-[150px] space-y-1">
           {payload.map((item: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-2">
+            <div key={index} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div
                   className="h-2 w-2 rounded-full"
@@ -35,7 +35,7 @@ export function ChartTooltip({
                   {item.name}
                 </span>
               </div>
-              <span className="text-xs font-mono text-muted-foreground">
+              <span className="text-xs font-mono text-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {valueFormatter(item.value)}
               </span>
             </div>

@@ -132,12 +132,37 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   };
 
   // Prepare data for pie chart with dynamic colors
-  const pieChartData = allStrategies.map((strategy) => ({
-    name: strategy.token?.symbol || "Unknown",
-    value: strategy.tvs_usd,
-    percentage: strategy.tvs_percentage,
-    color: stringToColor(strategy.token?.symbol || strategy.strategy_address),
-  }));
+  // Group strategies below 3% into "Others" for chart readability
+  const OTHERS_THRESHOLD = 3;
+  const majorStrategies: { name: string; value: number; percentage: number; color: string }[] = [];
+  let othersValue = 0;
+  let othersPercentage = 0;
+  let othersCount = 0;
+
+  allStrategies.forEach((strategy) => {
+    if (strategy.tvs_percentage >= OTHERS_THRESHOLD) {
+      majorStrategies.push({
+        name: strategy.token?.symbol || "Unknown",
+        value: strategy.tvs_usd,
+        percentage: strategy.tvs_percentage,
+        color: stringToColor(strategy.token?.symbol || strategy.strategy_address),
+      });
+    } else {
+      othersValue += strategy.tvs_usd;
+      othersPercentage += strategy.tvs_percentage;
+      othersCount++;
+    }
+  });
+
+  const pieChartData = [...majorStrategies];
+  if (othersCount > 0) {
+    pieChartData.push({
+      name: `Others (${othersCount})`,
+      value: othersValue,
+      percentage: othersPercentage,
+      color: "#6B7280",
+    });
+  }
 
   const chartColors = pieChartData.map((d) => d.color);
 
@@ -271,11 +296,13 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                   })}`
                 }
                 height={300}
+                centerLabel={totalTVS >= 1_000_000 ? `$${(totalTVS / 1_000_000).toFixed(1)}M` : totalTVS >= 1_000 ? `$${(totalTVS / 1_000).toFixed(1)}K` : `$${totalTVS.toFixed(0)}`}
+                centerSubLabel="Total TVS"
               />
 
               <div className="flex flex-col justify-center space-y-3">
                 <h4 className="font-semibold mb-2">Strategy Breakdown</h4>
-                {pieChartData.slice(0, 8).map((item, index) => (
+                {pieChartData.map((item, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between"
@@ -288,10 +315,10 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                       <span className="text-sm">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-sm font-medium block">
+                      <span className="text-sm font-medium block" style={{ fontVariantNumeric: "tabular-nums" }}>
                         ${item.value.toLocaleString()}
                       </span>
-                      <span className="text-xs text-muted-foreground block">
+                      <span className="text-xs text-muted-foreground block" style={{ fontVariantNumeric: "tabular-nums" }}>
                         {item.percentage.toFixed(1)}%
                       </span>
                     </div>

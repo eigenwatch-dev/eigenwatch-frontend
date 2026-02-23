@@ -36,24 +36,25 @@ export function LineChart({
         <RechartsLineChart data={data}>
           <CartesianGrid
             strokeDasharray="3 3"
-            className="stroke-muted/20"
+            stroke="#FFFFFF0D"
             vertical={false}
           />
           <XAxis
             dataKey={index}
-            className="text-xs font-medium"
-            tick={{ fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fill: "#6B7280", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            dy={10}
+            tickMargin={12}
+            interval="preserveStartEnd"
+            minTickGap={40}
           />
           <YAxis
-            className="text-xs font-medium"
-            tick={{ fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fill: "#6B7280", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             tickFormatter={valueFormatter}
-            width={60}
+            tickMargin={8}
+            width={80}
           />
           <Tooltip
             content={<ChartTooltip valueFormatter={valueFormatter} />}
@@ -65,7 +66,7 @@ export function LineChart({
               type="monotone"
               dataKey={category}
               stroke={colors[i % colors.length]}
-              strokeWidth={2}
+              strokeWidth={2.5}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
