@@ -11,12 +11,20 @@ import { ProGate } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useAllocationsOverview } from "@/hooks/crud/useAllocation";
 import { formatUSD } from "@/lib/formatting";
 import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
-import { Layers, PieChart, Shield, TrendingUp } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  PieChart,
+  Shield,
+  TrendingUp,
+} from "lucide-react";
 import type {
   AllocationByAVS,
   AllocationByStrategy,
@@ -30,6 +38,8 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
   const { isFree } = useProAccess();
   const [allocOffset, setAllocOffset] = useState(0);
   const [allocLimit, setAllocLimit] = useState(10);
+  const [strategyPage, setStrategyPage] = useState(0);
+  const STRATEGY_PAGE_SIZE = 5;
   const { data: allocations, isLoading } = useAllocationsOverview(operatorId);
 
   if (isLoading) {
@@ -77,7 +87,12 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
     avs_name: (
       <div className="flex items-center gap-2">
         <Avatar className="size-6">
-          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || avs.avsName || "AVS"} />}
+          {avs.avs_logo && (
+            <AvatarImage
+              src={avs.avs_logo}
+              alt={avs.avs_name || avs.avsName || "AVS"}
+            />
+          )}
           <AvatarFallback className="text-[10px]">
             {(avs.avs_name || avs.avsName || "?").slice(0, 2).toUpperCase()}
           </AvatarFallback>
@@ -153,43 +168,101 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
         description="Unlock strategy utilization breakdowns, per-AVS allocations, and risk indicators to understand where capital is deployed and exposure concentrates."
       >
         {/* Strategy Utilization */}
-        {strategyData.length > 0 && (
-          <SectionContainer
-            heading="Strategy Utilization"
-            info="Shows how much of each strategy's capacity is allocated to AVSs. Higher utilization means more of the strategy is being used."
-          >
-            <div className="space-y-4">
-              {strategyData.map((strategy, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {strategy.strategy_name}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {strategy.avs_count} AVS
-                        {strategy.avs_count !== 1 ? "s" : ""}
-                      </Badge>
+        {strategyData.length > 0 &&
+          (() => {
+            const totalPages = Math.ceil(
+              strategyData.length / STRATEGY_PAGE_SIZE,
+            );
+            const paginatedStrategies = strategyData.slice(
+              strategyPage * STRATEGY_PAGE_SIZE,
+              (strategyPage + 1) * STRATEGY_PAGE_SIZE,
+            );
+
+            return (
+              <SectionContainer
+                heading="Strategy Utilization"
+                info="Shows how much of each strategy's capacity is allocated to AVSs. Higher utilization means more of the strategy is being used."
+              >
+                <div className="space-y-4">
+                  {paginatedStrategies.map((strategy, index) => (
+                    <div
+                      key={strategyPage * STRATEGY_PAGE_SIZE + index}
+                      className="space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            {strategy.strategy_name}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {strategy.avs_count} AVS
+                            {strategy.avs_count !== 1 ? "s" : ""}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-muted-foreground">
+                            Allocated:{" "}
+                            <span className="text-foreground">
+                              {strategy.allocated_usd}
+                            </span>
+                          </span>
+                          <UtilizationBadge
+                            pct={strategy.utilization}
+                            size="sm"
+                          />
+                        </div>
+                      </div>
+                      <Progress
+                        value={parseFloat(strategy.utilization) || 0}
+                        className="h-2"
+                      />
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">
-                        Allocated:{" "}
-                        <span className="text-foreground">
-                          {strategy.allocated_usd}
-                        </span>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 border-t mt-4">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {strategyPage * STRATEGY_PAGE_SIZE + 1}–
+                      {Math.min(
+                        (strategyPage + 1) * STRATEGY_PAGE_SIZE,
+                        strategyData.length,
+                      )}{" "}
+                      of {strategyData.length} strategies
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setStrategyPage((p) => Math.max(0, p - 1))
+                        }
+                        disabled={strategyPage === 0}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground px-2">
+                        {strategyPage + 1} / {totalPages}
                       </span>
-                      <UtilizationBadge pct={strategy.utilization} size="sm" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setStrategyPage((p) =>
+                            Math.min(totalPages - 1, p + 1),
+                          )
+                        }
+                        disabled={strategyPage >= totalPages - 1}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <Progress
-                    value={parseFloat(strategy.utilization) || 0}
-                    className="h-2"
-                  />
-                </div>
-              ))}
-            </div>
-          </SectionContainer>
-        )}
+                )}
+              </SectionContainer>
+            );
+          })()}
 
         {/* Allocations by AVS */}
         <SectionContainer

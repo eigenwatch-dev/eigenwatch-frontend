@@ -35,17 +35,17 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   const { data: statsData, isLoading: isStatsLoading } =
     useOperatorStats(operatorId);
 
-  console.log("statsData", statsData);
-
   // Fetch Strategies (Paginated for Table)
-  const { data: strategiesData, isLoading: isStrategiesLoading } =
-    useOperatorStrategies(operatorId, {
-      limit,
-      offset,
-      sort_by: "tvs", // Default sort
-    });
-
-  console.log("strategiesData", strategiesData);
+  const {
+    data: strategiesData,
+    isLoading: isStrategiesLoading,
+    isFetching: isStrategiesFetching,
+  } = useOperatorStrategies(operatorId, {
+    limit,
+    offset,
+    sort_by: "tvs", // Default sort
+    sort_order: "desc",
+  });
 
   const allStrategies = statsData?.tvs.by_strategy || [];
   const paginatedStrategies = strategiesData?.strategies || [];
@@ -401,7 +401,7 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
                       setLimit(newLimit);
                       setOffset(0);
                     },
-                    isLoading: isStrategiesLoading,
+                    isLoading: isStrategiesLoading || isStrategiesFetching,
                   }
             }
           />

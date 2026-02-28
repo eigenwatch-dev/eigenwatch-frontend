@@ -185,6 +185,7 @@ export interface ListOperatorStrategiesParams {
   min_utilization?: number;
   max_utilization?: number;
   sort_by?: "tvs" | "utilization" | "encumbered";
+  sort_order?: SortOrder;
 }
 
 export interface OperatorStrategyListItem {

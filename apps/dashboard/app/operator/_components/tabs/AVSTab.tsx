@@ -38,7 +38,11 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
   const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
-  const { data: avsData, isLoading } = useOperatorAVS(operatorId, { limit, offset });
+  const {
+    data: avsData,
+    isLoading,
+    isFetching,
+  } = useOperatorAVS(operatorId, { limit, offset });
   const avsList: AVSRelationship[] = avsData?.avs_relationships || [];
 
   if (isLoading) {
@@ -85,7 +89,9 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
     avs_name: (
       <div className="flex items-center gap-2">
         <Avatar className="size-6">
-          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />}
+          {avs.avs_logo && (
+            <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />
+          )}
           <AvatarFallback className="text-[10px]">
             {(avs.avs_name || "?").slice(0, 2).toUpperCase()}
           </AvatarFallback>
@@ -198,7 +204,7 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
                         setLimit(newLimit);
                         setOffset(0);
                       },
-                      isLoading,
+                      isLoading: isLoading || isFetching,
                     }
               }
             />

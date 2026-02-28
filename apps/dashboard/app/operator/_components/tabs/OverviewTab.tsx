@@ -90,7 +90,6 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
     const transformed = snapshots.map((snapshot: any) => ({
       date: formatDateForChart(snapshot.date, true),
       fullDate: snapshot.date,
-      tvs: parseFloat(snapshot.tvs || snapshot.tvs_eth || "0") / 1e18,
       tvs_usd: parseFloat(snapshot.tvs_usd || "0"),
       delegators: snapshot.delegator_count || 0,
       avs: snapshot.active_avs_count || 0,
@@ -101,15 +100,15 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
   }, [snapshots]);
 
   // Check if we have meaningful TVS data
-  const hasTvsData = chartData.some((d) => d.tvs > 0 || d.tvs_usd > 0);
+  const hasTvsData = chartData.some((d) => d.tvs_usd > 0);
   const hasDelegatorData = chartData.some((d) => d.delegators > 0);
   const hasAvsData = chartData.some((d) => d.avs > 0);
 
   // Calculate trends
   const tvsTrend = useMemo(() => {
     if (chartData.length < 2) return null;
-    const first = chartData[0]?.tvs || 0;
-    const last = chartData[chartData.length - 1]?.tvs || 0;
+    const first = chartData[0]?.tvs_usd || 0;
+    const last = chartData[chartData.length - 1]?.tvs_usd || 0;
     if (first === 0) return null;
     return (((last - first) / first) * 100).toFixed(1);
   }, [chartData]);
@@ -249,8 +248,8 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Activity className="h-4 w-4" />
                 <span>
-                  Current:{" "}
-                  {compactNumber(chartData[chartData.length - 1]?.tvs || 0)} ETH
+                  Current: $
+                  {compactNumber(chartData[chartData.length - 1]?.tvs_usd || 0)}
                 </span>
               </div>
               {tvsTrend && (
@@ -270,9 +269,9 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
             <AreaChart
               data={chartData}
               index="date"
-              categories={["tvs"]}
+              categories={["tvs_usd"]}
               colors={["var(--chart-1)"]}
-              valueFormatter={(value) => `${compactNumber(value)} ETH`}
+              valueFormatter={(value) => `$${compactNumber(value)}`}
               height={300}
             />
           </div>
