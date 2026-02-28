@@ -7,6 +7,7 @@ const API_KEY = process.env.API_KEY;
 
 const api = axios.create({
   baseURL: BASE_URL,
+  timeout: 15_000, // 15 second timeout — prevents SSR from hanging on slow backend
   headers: {
     "Content-Type": "application/json",
     "x-api-key": API_KEY,

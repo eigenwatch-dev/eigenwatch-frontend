@@ -26,12 +26,23 @@ import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 
 // ==================== OPERATORS ====================
 
-export const useOperators = (params?: OperatorListParams) => {
+export const useOperators = (
+  params?: OperatorListParams,
+  options?: { initialData?: any },
+) => {
   return useQuery({
     queryKey: QUERY_KEYS.operators(params),
     queryFn: () => getOperators(params),
     select: (data) => data.data,
     staleTime: 2 * 60_000, // 2 minutes
+    initialData: options?.initialData
+      ? {
+          success: true,
+          data: options.initialData,
+          error: null,
+          errorCode: undefined,
+        }
+      : undefined,
   });
 };
 
@@ -44,6 +55,7 @@ export const useOperator = (
     queryFn: () => getOperator(id),
     enabled: (options?.enabled ?? true) && !!id,
     select: (data) => data.data?.data,
+    staleTime: 2 * 60_000, // 2 minutes — prevents immediate refetch after SSR hydration
     initialData: options?.initialData
       ? {
           success: true,
@@ -69,6 +81,7 @@ export const useOperatorStats = (
     queryFn: () => getOperatorStats(id),
     enabled: (options?.enabled ?? true) && !!id,
     select: (data) => data.data?.data,
+    staleTime: 2 * 60_000, // 2 minutes — prevents immediate refetch after SSR hydration
     initialData: options?.initialData
       ? {
           success: true,

@@ -74,8 +74,6 @@ export async function handleApiAction<T = any>({
 
     const data = response.data;
 
-    console.log(`API Response for ${endpoint}:`, data);
-
     if (!data.success) {
       return handleError<T>(data.error, true);
     }
