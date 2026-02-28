@@ -57,14 +57,18 @@ export function OperatorList({
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(20);
 
-  const { data, isLoading } = useOperators({
-    limit,
-    offset,
-  });
+  const { data, isLoading } = useOperators(
+    { limit, offset },
+    {
+      initialData:
+        offset === 0
+          ? { data: initialData, pagination: initialPagination }
+          : undefined,
+    },
+  );
 
-  // Use server-fetched data for initial render, React Query data for subsequent
-  const operatorData = data?.data || initialData;
-  const total = data?.pagination?.total || initialPagination?.total || 0;
+  const operatorData = data?.data || [];
+  const total = data?.pagination?.total || 0;
 
   const operatorsColumns: TableColumnConfig[] = [
     { key: "operator", displayName: "Operator" },

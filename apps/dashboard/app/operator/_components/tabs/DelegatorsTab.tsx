@@ -20,13 +20,18 @@ interface DelegatorsTabProps {
 export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
   const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(10);
 
-  const { data: delegators, isLoading: isDelegatorsLoading } =
-    useOperatorDelegators(operatorId, {
-      limit,
-      offset,
-    });
+  const {
+    data: delegators,
+    isLoading: isDelegatorsLoading,
+    isFetching: isDelegatorsFetching,
+  } = useOperatorDelegators(operatorId, {
+    limit,
+    offset,
+    sort_by: "tvs",
+    sort_order: "desc",
+  });
 
   const { data: stats, isLoading: isStatsLoading } =
     useOperatorStats(operatorId);
@@ -133,7 +138,7 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
                       setLimit(newLimit);
                       setOffset(0);
                     },
-                    isLoading: isDelegatorsLoading,
+                    isLoading: isDelegatorsLoading || isDelegatorsFetching,
                   }
             }
           />

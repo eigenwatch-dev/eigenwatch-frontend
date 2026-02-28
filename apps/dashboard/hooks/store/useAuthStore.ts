@@ -29,7 +29,7 @@ const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isAuthenticating: false,
   isRestoring: true,
-  tier: "anonymous",
+  tier: "FREE",
   showAuthModal: false,
   authStep: "sign",
 
@@ -37,7 +37,7 @@ const useAuthStore = create<AuthState>((set) => ({
     set({
       user,
       isAuthenticated: !!user,
-      tier: user?.tier || "anonymous",
+      tier: user?.tier || "FREE",
     }),
 
   setAccessToken: (accessToken) => set({ accessToken }),
@@ -59,7 +59,7 @@ const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       isAuthenticated: false,
       isAuthenticating: false,
-      tier: "anonymous",
+      tier: "FREE",
       showAuthModal: false,
       authStep: "sign",
     }),

@@ -5,6 +5,8 @@
 import api from "@/lib/api";
 import { handleSuccess, handleError } from "@/lib/utils";
 import { ApiResponse, AppApiResponse } from "@/types/api.types";
+import { getAccessToken } from "@/actions/utils";
+import { refreshAccessTokenAction } from "@/actions/auth";
 
 interface ApiActionOptions {
   endpoint: string;
@@ -20,14 +22,55 @@ export async function handleApiAction<T = any>({
   successMessage,
 }: ApiActionOptions): Promise<AppApiResponse<ApiResponse<T>>> {
   try {
-    const response =
-      method === "get"
-        ? await api.get(endpoint)
-        : await api[method](endpoint, body);
+    // 1. Try to get the existing access token
+    let accessToken = await getAccessToken();
+
+    // 2. If token is missing, attempt a refresh proactively
+    if (!accessToken) {
+      const refreshResult = await refreshAccessTokenAction();
+      if (refreshResult.success) {
+        accessToken = refreshResult.accessToken;
+      }
+    }
+
+    // 3. Reject if still no token after refresh attempt
+    if (!accessToken) {
+      return handleError<T>("Authentication required", true);
+    }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    let response;
+    try {
+      response =
+        method === "get"
+          ? await api.get(endpoint, { headers })
+          : await api[method](endpoint, body, { headers });
+    } catch (error: any) {
+      // 4. If 401 Unauthorized, try refreshing once and retry
+      if (error.response?.status === 401) {
+        const refreshResult = await refreshAccessTokenAction();
+        if (refreshResult.success) {
+          const newHeaders = {
+            ...headers,
+            Authorization: `Bearer ${refreshResult.accessToken}`,
+          };
+          response =
+            method === "get"
+              ? await api.get(endpoint, { headers: newHeaders })
+              : await api[method](endpoint, body, { headers: newHeaders });
+        } else {
+          // Refresh failed, propagate the original error
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
 
     const data = response.data;
-
-    console.log(`API Response for ${endpoint}:`, data);
 
     if (!data.success) {
       return handleError<T>(data.error, true);

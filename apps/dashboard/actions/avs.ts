@@ -16,7 +16,7 @@ export const getOperatorAVS = async (id: string, params?: AVSListParams) => {
   const queryString = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
-  return handleApiAction<{ avs_relationships: AVS[] }>({
+  return handleApiAction<{ avs_relationships: AVS[]; pagination?: { total: number; limit: number; offset: number; has_more: boolean } }>({
     endpoint: `/api/v1/operators/${id}/avs${queryString}`,
     method: "get",
   });

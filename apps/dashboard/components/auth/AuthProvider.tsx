@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
+import { useRouter, usePathname } from "next/navigation";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { doRefresh, logout as apiLogout } from "@/lib/auth-api";
 import { AuthModal } from "./AuthModal";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const router = useRouter();
+  const pathname = usePathname();
   const {
     isAuthenticated,
     openAuthModal,
-    logout,
-    showAuthModal,
     setRestoring,
   } = useAuthStore();
 
@@ -24,8 +24,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isConnected || !address) {
       if (previousAddress.current && isAuthenticated) {
-        // Wallet disconnected — clear auth (backend + frontend)
-        apiLogout();
+        // Wallet disconnected — clear auth and redirect to connect
+        apiLogout().then(() => {
+          if (pathname !== "/connect") {
+            router.replace("/connect");
+          }
+        });
       }
       previousAddress.current = undefined;
       hasAttemptedRefresh.current = false;
@@ -35,8 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Wallet address changed (switched wallets)
     if (previousAddress.current && previousAddress.current !== address) {
-      // Must revoke the old session cookie before proceeding
-      // We use apiLogout which clears cookie AND store
       apiLogout().then(() => {
         hasAttemptedRefresh.current = false;
       });
@@ -45,10 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     previousAddress.current = address;
 
     if (isAuthenticated || hasAttemptedRefresh.current) return;
-
-    // Wait for logout to complete if it was triggered?
-    // user.id check vs address check might be safer.
-    // But basic flow:
 
     hasAttemptedRefresh.current = true;
 
@@ -59,8 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // doRefresh already called setAccessToken and setUser
       })
       .catch(() => {
-        // No existing session — prompt SIWE sign-in
-        openAuthModal();
+        // No existing session — redirect to connect page
+        if (pathname !== "/connect") {
+          router.replace("/connect");
+        } else {
+          openAuthModal("connect");
+        }
       })
       .finally(() => {
         setRestoring(false);
@@ -70,8 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     address,
     isAuthenticated,
     openAuthModal,
-    // logout, // Removed from dependency to avoid loop if reference changes (it's imported)
     setRestoring,
+    router,
+    pathname,
   ]);
 
   return (

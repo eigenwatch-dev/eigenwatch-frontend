@@ -3,7 +3,7 @@
 import { SortOrder } from "./operator.types";
 
 export type DelegatorStatus = "active" | "inactive" | "all";
-export type DelegatorSortBy = "shares" | "delegation_date";
+export type DelegatorSortBy = "shares" | "delegation_date" | "tvs";
 
 export interface DelegatorListParams {
   limit?: number;

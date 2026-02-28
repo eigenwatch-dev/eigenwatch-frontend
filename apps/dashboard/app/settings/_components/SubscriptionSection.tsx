@@ -25,7 +25,7 @@ const PRO_FEATURES = [
 export function SubscriptionSection() {
   const { user } = useAuthStore();
   const [modalOpen, setModalOpen] = useState(false);
-  const isPro = user?.tier === "pro" || user?.tier === "enterprise";
+  const isPro = user?.tier === "PRO" || user?.tier === "ENTERPRISE";
 
   return (
     <div className="rounded-lg border border-border bg-card">

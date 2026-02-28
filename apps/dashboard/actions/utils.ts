@@ -15,7 +15,7 @@ export async function setAuthCookie(token: string) {
     secure: true,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 22, // 22 hours in seconds
+    maxAge: 15 * 60, // 15 minutes in seconds
   });
 }
 

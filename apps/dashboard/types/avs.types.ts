@@ -9,6 +9,8 @@ export type AVSSortBy =
 export interface AVSListParams {
   status?: AVSStatus;
   sort_by?: AVSSortBy;
+  limit?: number;
+  offset?: number;
 }
 
 export interface AVS {

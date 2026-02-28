@@ -73,11 +73,11 @@ const ReusableTable = ({
 
   const visibleIds = useMemo(
     () => currentTab.data.map((row) => row[currentTab.idKey]),
-    [currentTab.data, currentTab.idKey]
+    [currentTab.data, currentTab.idKey],
   );
 
   const allSelected = visibleIds.every((id) =>
-    isSelected(currentTab.tableKey, id)
+    isSelected(currentTab.tableKey, id),
   );
 
   const handleRowClick = (row: any) => {
@@ -234,7 +234,7 @@ const ReusableTable = ({
                         <span className="text-muted-foreground font-[600] text-[14px]">
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                         </span>
                       </th>
@@ -253,7 +253,7 @@ const ReusableTable = ({
                       transition={{ duration: 0.2 }}
                     >
                       <td colSpan={columns.length} className="text-center py-6">
-                        <ClipLoader size={30} color="hsl(var(--primary))" />
+                        <ClipLoader size={30} color="var(--primary)" />
                       </td>
                     </motion.tr>
                   ) : (
@@ -275,7 +275,7 @@ const ReusableTable = ({
                             <div className="text-foreground text-[14px]">
                               {flexRender(
                                 cell.column.columnDef.cell,
-                                cell.getContext()
+                                cell.getContext(),
                               )}
                             </div>
                           </td>

@@ -8,6 +8,7 @@ import {
   UserPreferences,
 } from "@/types/auth.types";
 import useAuthStore from "@/hooks/store/useAuthStore";
+import { setAuthCookie, clearAuthCookie } from "@/actions/utils";
 
 const BASE_URL = "";
 
@@ -71,11 +72,13 @@ export async function doRefresh(): Promise<string> {
     try {
       const data = await refreshToken();
       useAuthStore.getState().setAccessToken(data.tokens.access_token);
+      await setAuthCookie(data.tokens.access_token);
       useAuthStore.getState().setUser(data.user);
       return data.tokens.access_token;
     } catch {
       // Refresh failed — session is truly expired
       useAuthStore.getState().logout();
+      await clearAuthCookie();
       throw new AuthApiError("Session expired. Please sign in again.", 401);
     } finally {
       refreshPromise = null;
@@ -181,6 +184,7 @@ export async function logout() {
   } finally {
     // Always clear local state
     useAuthStore.getState().logout();
+    await clearAuthCookie();
   }
 }
 
