@@ -64,12 +64,10 @@ function integerFormat(value: number): string {
 const OverviewTab = ({ operator }: OverviewTabProps) => {
   const { isFree } = useProAccess();
   const { data: riskData, isLoading: loadingRisk } = useRiskAssessment(
-    operator?.operator_id
-  );
-  const { data: activityData, isLoading: loadingActivity } = useOperatorActivity(
     operator?.operator_id,
-    { limit: 10 }
   );
+  const { data: activityData, isLoading: loadingActivity } =
+    useOperatorActivity(operator?.operator_id, { limit: 10 });
   const activity = activityData?.data?.data || [];
   const isLoading = loadingRisk || loadingActivity;
 
@@ -103,17 +101,25 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
   }, [snapshots]);
 
   // Check if we have meaningful TVS data
-  const hasTvsData = chartData.some(d => d.tvs > 0 || d.tvs_usd > 0);
-  const hasDelegatorData = chartData.some(d => d.delegators > 0);
-  const hasAvsData = chartData.some(d => d.avs > 0);
+  const hasTvsData = chartData.some((d) => d.tvs > 0 || d.tvs_usd > 0);
+  const hasDelegatorData = chartData.some((d) => d.delegators > 0);
+  const hasAvsData = chartData.some((d) => d.avs > 0);
 
   // Calculate trends
+  const tvsTrend = useMemo(() => {
+    if (chartData.length < 2) return null;
+    const first = chartData[0]?.tvs || 0;
+    const last = chartData[chartData.length - 1]?.tvs || 0;
+    if (first === 0) return null;
+    return (((last - first) / first) * 100).toFixed(1);
+  }, [chartData]);
+
   const delegatorTrend = useMemo(() => {
     if (chartData.length < 2) return null;
     const first = chartData[0]?.delegators || 0;
     const last = chartData[chartData.length - 1]?.delegators || 0;
     if (first === 0) return null;
-    return ((last - first) / first * 100).toFixed(1);
+    return (((last - first) / first) * 100).toFixed(1);
   }, [chartData]);
 
   const avsTrend = useMemo(() => {
@@ -121,7 +127,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
     const first = chartData[0]?.avs || 0;
     const last = chartData[chartData.length - 1]?.avs || 0;
     if (first === 0) return null;
-    return ((last - first) / first * 100).toFixed(1);
+    return (((last - first) / first) * 100).toFixed(1);
   }, [chartData]);
 
   return (
@@ -170,14 +176,21 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 {/* Key Stats */}
                 <div className="pt-3 space-y-3 border-t border-border">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Confidence Score</span>
+                    <span className="text-muted-foreground">
+                      Confidence Score
+                    </span>
                     <Badge variant="outline" className="text-muted-foreground">
                       {riskData?.scores?.confidence || 0}%
                     </Badge>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Delegation Volatility</span>
-                    <Badge variant="outline" className="text-green-500 border-green-500/30">
+                    <span className="text-muted-foreground">
+                      Delegation Volatility
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="text-green-500 border-green-500/30"
+                    >
                       Stable
                     </Badge>
                   </div>
@@ -231,21 +244,48 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
             <Skeleton className="h-full w-full" />
           </div>
         ) : hasTvsData && chartData.length > 0 ? (
-          <AreaChart
-            data={chartData}
-            index="date"
-            categories={["tvs"]}
-            colors={["hsl(var(--chart-1))"]}
-            valueFormatter={(value) => `${compactNumber(value)} ETH`}
-            height={300}
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm px-1">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Activity className="h-4 w-4" />
+                <span>
+                  Current:{" "}
+                  {compactNumber(chartData[chartData.length - 1]?.tvs || 0)} ETH
+                </span>
+              </div>
+              {tvsTrend && (
+                <Badge
+                  variant="outline"
+                  className={
+                    parseFloat(tvsTrend) >= 0
+                      ? "text-green-500 border-green-500/30"
+                      : "text-red-500 border-red-500/30"
+                  }
+                >
+                  {parseFloat(tvsTrend) >= 0 ? "+" : ""}
+                  {tvsTrend}%
+                </Badge>
+              )}
+            </div>
+            <AreaChart
+              data={chartData}
+              index="date"
+              categories={["tvs"]}
+              colors={["var(--chart-1)"]}
+              valueFormatter={(value) => `${compactNumber(value)} ETH`}
+              height={300}
+            />
+          </div>
         ) : (
           <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-lg border border-dashed border-border">
             <div className="text-center p-6">
               <AlertCircle className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-              <p className="text-sm font-medium text-muted-foreground">TVS Historical Data Not Available</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                TVS Historical Data Not Available
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Historical TVS tracking is being implemented. Current TVS is shown in the header.
+                Historical TVS tracking is being implemented. Current TVS is
+                shown in the header.
               </p>
             </div>
           </div>
@@ -267,14 +307,21 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               <div className="flex items-center justify-between text-sm px-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  <span>Current: {chartData[chartData.length - 1]?.delegators || 0}</span>
+                  <span>
+                    Current: {chartData[chartData.length - 1]?.delegators || 0}
+                  </span>
                 </div>
                 {delegatorTrend && (
                   <Badge
                     variant="outline"
-                    className={parseFloat(delegatorTrend) >= 0 ? "text-green-500 border-green-500/30" : "text-red-500 border-red-500/30"}
+                    className={
+                      parseFloat(delegatorTrend) >= 0
+                        ? "text-green-500 border-green-500/30"
+                        : "text-red-500 border-red-500/30"
+                    }
                   >
-                    {parseFloat(delegatorTrend) >= 0 ? "+" : ""}{delegatorTrend}%
+                    {parseFloat(delegatorTrend) >= 0 ? "+" : ""}
+                    {delegatorTrend}%
                   </Badge>
                 )}
               </div>
@@ -282,7 +329,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 data={chartData}
                 index="date"
                 categories={["delegators"]}
-                colors={["hsl(var(--chart-2))"]}
+                colors={["var(--chart-2)"]}
                 valueFormatter={integerFormat}
                 height={200}
               />
@@ -307,14 +354,21 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
               <div className="flex items-center justify-between text-sm px-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4" />
-                  <span>Current: {chartData[chartData.length - 1]?.avs || 0} AVS</span>
+                  <span>
+                    Current: {chartData[chartData.length - 1]?.avs || 0} AVS
+                  </span>
                 </div>
                 {avsTrend && (
                   <Badge
                     variant="outline"
-                    className={parseFloat(avsTrend) >= 0 ? "text-green-500 border-green-500/30" : "text-red-500 border-red-500/30"}
+                    className={
+                      parseFloat(avsTrend) >= 0
+                        ? "text-green-500 border-green-500/30"
+                        : "text-red-500 border-red-500/30"
+                    }
                   >
-                    {parseFloat(avsTrend) >= 0 ? "+" : ""}{avsTrend}%
+                    {parseFloat(avsTrend) >= 0 ? "+" : ""}
+                    {avsTrend}%
                   </Badge>
                 )}
               </div>
@@ -322,7 +376,7 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
                 data={chartData}
                 index="date"
                 categories={["avs"]}
-                colors={["hsl(var(--chart-3))"]}
+                colors={["var(--chart-3)"]}
                 valueFormatter={integerFormat}
                 height={200}
               />
@@ -342,8 +396,9 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
           Reading These Charts
         </h4>
         <p className="text-sm text-muted-foreground">
-          These charts show 6 months of historical data. Flat lines indicate stable metrics, which can be positive
-          (consistent delegator count) or may reflect limited data availability. Trend badges show percentage
+          These charts show 6 months of historical data. Flat lines indicate
+          stable metrics, which can be positive (consistent delegator count) or
+          may reflect limited data availability. Trend badges show percentage
           change over the period.
         </p>
       </div>

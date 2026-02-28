@@ -28,11 +28,11 @@ export function DonutChart({
   category,
   index,
   colors = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
   ],
   valueFormatter,
   height = 300,
@@ -53,7 +53,7 @@ export function DonutChart({
             paddingAngle={2}
             dataKey={category}
             nameKey={index}
-            stroke="hsl(var(--background))"
+            stroke="var(--background)"
             strokeWidth={2}
           >
             {data.map((entry, i) => (

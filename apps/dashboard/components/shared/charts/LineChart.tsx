@@ -25,7 +25,7 @@ export function LineChart({
   data,
   categories,
   index,
-  colors = ["hsl(var(--primary))"],
+  colors = ["var(--primary)"],
   valueFormatter,
   height = 300,
   className,
@@ -58,7 +58,11 @@ export function LineChart({
           />
           <Tooltip
             content={<ChartTooltip valueFormatter={valueFormatter} />}
-            cursor={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1, strokeDasharray: "4 4" }}
+            cursor={{
+              stroke: "var(--muted-foreground)",
+              strokeWidth: 1,
+              strokeDasharray: "4 4",
+            }}
           />
           {categories.map((category, i) => (
             <Line
