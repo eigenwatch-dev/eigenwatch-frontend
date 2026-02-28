@@ -196,6 +196,8 @@ export interface OperatorStrategyListItem {
   encumbered_magnitude: string;
   available_magnitude: string;
   utilization_rate: string;
+  tvs_usd: string;
+  strategy_logo: string | null;
   last_updated_at: string;
   delegator_count: number;
 }

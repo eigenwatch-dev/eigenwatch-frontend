@@ -3,13 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Info,
-  TrendingUp,
-  PieChart,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Info, TrendingUp, PieChart } from "lucide-react";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
@@ -23,14 +17,6 @@ import {
 } from "@/hooks/crud/useOperator";
 import { OperatorStrategyListItem } from "@/types/operator.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
@@ -49,6 +35,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   const { data: statsData, isLoading: isStatsLoading } =
     useOperatorStats(operatorId);
 
+  console.log("statsData", statsData);
+
   // Fetch Strategies (Paginated for Table)
   const { data: strategiesData, isLoading: isStrategiesLoading } =
     useOperatorStrategies(operatorId, {
@@ -56,6 +44,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
       offset,
       sort_by: "tvs", // Default sort
     });
+
+  console.log("strategiesData", strategiesData);
 
   const allStrategies = statsData?.tvs.by_strategy || [];
   const paginatedStrategies = strategiesData?.strategies || [];
@@ -133,8 +123,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   };
 
   // Prepare data for pie chart with dynamic colors
-  // Group strategies below 3% into "Others" for chart readability
-  const OTHERS_THRESHOLD = 3;
+  // Group strategies below 0.5% into "Others" for chart readability
+  const OTHERS_THRESHOLD = 0.5;
   const majorStrategies: {
     name: string;
     value: number;
@@ -175,65 +165,49 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
   const chartColors = pieChartData.map((d) => d.color);
 
   // Dummy data for gated table
+  // Dummy data for gated table
   const DUMMY_STRATEGIES = [
     {
       strategy_id: "dummy-1",
       strategy_name: "Ethereum Beacon Chain",
       strategy_symbol: "beaconETH",
-      tvs_usd: 125000000,
-      tvs_percentage: 45.2,
-      max_magnitude: "48500.5",
-      utilization_rate: "0.85",
+      tvs_usd: "125000000",
       delegator_count: 1240,
     },
     {
       strategy_id: "dummy-2",
       strategy_name: "Lido Staked ETH",
       strategy_symbol: "stETH",
-      tvs_usd: 85000000,
-      tvs_percentage: 30.8,
-      max_magnitude: "32000.2",
-      utilization_rate: "0.72",
+      tvs_usd: "85000000",
       delegator_count: 850,
     },
     {
       strategy_id: "dummy-3",
       strategy_name: "Rocket Pool ETH",
       strategy_symbol: "rETH",
-      tvs_usd: 42000000,
-      tvs_percentage: 15.2,
-      max_magnitude: "15800.8",
-      utilization_rate: "0.91",
+      tvs_usd: "42000000",
       delegator_count: 420,
     },
     {
       strategy_id: "dummy-4",
       strategy_name: "Coinbase Wrapped Staked ETH",
       strategy_symbol: "cbETH",
-      tvs_usd: 15000000,
-      tvs_percentage: 5.4,
-      max_magnitude: "5600.4",
-      utilization_rate: "0.64",
+      tvs_usd: "15000000",
       delegator_count: 210,
     },
     {
       strategy_id: "dummy-5",
       strategy_name: "Frax Ether",
       strategy_symbol: "frxETH",
-      tvs_usd: 6500000,
-      tvs_percentage: 2.3,
-      max_magnitude: "2400.2",
-      utilization_rate: "0.58",
+      tvs_usd: "6500000",
       delegator_count: 95,
     },
     {
       strategy_id: "dummy-6",
       strategy_name: "Mantle Staked ETH",
       strategy_symbol: "mETH",
-      tvs_usd: 3000000,
-      tvs_percentage: 1.1,
-      max_magnitude: "1100.1",
-      utilization_rate: "0.42",
+      tvs_usd: "3000000",
+      strategy_logo: "https://static.alchemyapi.io/images/assets/27566.png",
       delegator_count: 45,
     },
   ];
@@ -355,44 +329,47 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
           <ReusableTable
             columns={[
               { key: "token", displayName: "Strategy" },
-              { key: "max_magnitude", displayName: "Total Value" },
-              { key: "utilization_rate", displayName: "Utilization" },
+              { key: "tvs_usd", displayName: "TVS (USD)" },
+              { key: "tvs_share", displayName: "Share (%)" },
               { key: "delegator_count", displayName: "Delegators" },
             ]}
             data={tableData.map((s: any) => {
-              const utilization = parseFloat(s.utilization_rate || "0");
+              const tvsAmount = parseFloat(s.tvs_usd || "0");
+              const sharePercent =
+                totalTVS > 0 ? (tvsAmount / totalTVS) * 100 : 0;
 
               return {
                 ...s,
                 id: s.strategy_id,
-                max_magnitude: (
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {parseFloat(s.max_magnitude || "0").toLocaleString(
-                        undefined,
-                        {
-                          minimumFractionDigits: 4,
-                          maximumFractionDigits: 4,
-                        },
-                      )}{" "}
-                      {s.strategy_symbol}
-                    </p>
+                tvs_usd: (
+                  <div className="font-medium tabular-nums">
+                    $
+                    {tvsAmount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                 ),
-                utilization_rate: (
+                tvs_share: (
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">
-                      {(utilization * 100).toFixed(2)}%
+                    <span className="font-medium tabular-nums w-12 text-right">
+                      {sharePercent.toFixed(2)}%
                     </span>
-                    <Progress value={utilization * 100} className="w-16 h-2" />
+                    <Progress value={sharePercent} className="w-16 h-2" />
                   </div>
                 ),
                 delegator_count: (
-                  <Badge variant="secondary">{s.delegator_count || 0}</Badge>
+                  <Badge variant="secondary" className="tabular-nums">
+                    {s.delegator_count?.toLocaleString() || 0}
+                  </Badge>
                 ),
                 token: (
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={s.strategy_logo || undefined}
+                        alt={s.strategy_name}
+                      />
                       <AvatarFallback>
                         {s.strategy_symbol?.slice(0, 2) || "??"}
                       </AvatarFallback>

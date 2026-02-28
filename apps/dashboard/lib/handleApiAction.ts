@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { handleSuccess, handleError } from "@/lib/utils";
 import { ApiResponse, AppApiResponse } from "@/types/api.types";
 import { getAccessToken } from "@/actions/utils";
+import { refreshAccessTokenAction } from "@/actions/auth";
 
 interface ApiActionOptions {
   endpoint: string;
@@ -21,17 +22,55 @@ export async function handleApiAction<T = any>({
   successMessage,
 }: ApiActionOptions): Promise<AppApiResponse<ApiResponse<T>>> {
   try {
-    // Read the access token from the httpOnly cookie to forward auth to the backend
-    const accessToken = await getAccessToken();
+    // 1. Try to get the existing access token
+    let accessToken = await getAccessToken();
+
+    // 2. If token is missing, attempt a refresh proactively
+    if (!accessToken) {
+      console.log(
+        `Access token missing for ${endpoint}, attempting refresh...`,
+      );
+      const refreshResult = await refreshAccessTokenAction();
+      if (refreshResult.success) {
+        accessToken = refreshResult.accessToken;
+      }
+    }
+
     const headers: Record<string, string> = {};
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    const response =
-      method === "get"
-        ? await api.get(endpoint, { headers })
-        : await api[method](endpoint, body, { headers });
+    let response;
+    try {
+      response =
+        method === "get"
+          ? await api.get(endpoint, { headers })
+          : await api[method](endpoint, body, { headers });
+    } catch (error: any) {
+      // 3. If 401 Unauthorized, try refreshing once and retry
+      if (error.response?.status === 401) {
+        console.log(
+          `401 Unauthorized for ${endpoint}, attempting refresh and retry...`,
+        );
+        const refreshResult = await refreshAccessTokenAction();
+        if (refreshResult.success) {
+          const newHeaders = {
+            ...headers,
+            Authorization: `Bearer ${refreshResult.accessToken}`,
+          };
+          response =
+            method === "get"
+              ? await api.get(endpoint, { headers: newHeaders })
+              : await api[method](endpoint, body, { headers: newHeaders });
+        } else {
+          // Refresh failed, propagate the original error
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
 
     const data = response.data;
 
