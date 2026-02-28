@@ -1,5 +1,5 @@
 export type UserTier = "FREE" | "PRO" | "ENTERPRISE";
-export type AuthTier = "ANONYMOUS" | UserTier;
+export type AuthTier = UserTier;
 export type AuthStep = "connect" | "sign" | "email" | "verify" | "complete";
 
 export interface User {

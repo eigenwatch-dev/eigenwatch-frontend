@@ -27,19 +27,20 @@ export async function handleApiAction<T = any>({
 
     // 2. If token is missing, attempt a refresh proactively
     if (!accessToken) {
-      console.log(
-        `Access token missing for ${endpoint}, attempting refresh...`,
-      );
       const refreshResult = await refreshAccessTokenAction();
       if (refreshResult.success) {
         accessToken = refreshResult.accessToken;
       }
     }
 
-    const headers: Record<string, string> = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
+    // 3. Reject if still no token after refresh attempt
+    if (!accessToken) {
+      return handleError<T>("Authentication required", true);
     }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+    };
 
     let response;
     try {
@@ -48,11 +49,8 @@ export async function handleApiAction<T = any>({
           ? await api.get(endpoint, { headers })
           : await api[method](endpoint, body, { headers });
     } catch (error: any) {
-      // 3. If 401 Unauthorized, try refreshing once and retry
+      // 4. If 401 Unauthorized, try refreshing once and retry
       if (error.response?.status === 401) {
-        console.log(
-          `401 Unauthorized for ${endpoint}, attempting refresh and retry...`,
-        );
         const refreshResult = await refreshAccessTokenAction();
         if (refreshResult.success) {
           const newHeaders = {
