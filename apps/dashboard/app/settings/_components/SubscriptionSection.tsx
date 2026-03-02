@@ -3,7 +3,7 @@
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { PaymentModal } from "./PaymentModal";
 
 const FREE_FEATURES = [
   "View operator summaries and aggregates",
@@ -84,8 +84,8 @@ export function SubscriptionSection() {
                   Current
                 </span>
               ) : (
-                <span className="text-xs text-muted-foreground">
-                  Coming soon
+                <span className="text-xs text-blue-500 font-medium">
+                  Available Now
                 </span>
               )}
             </div>
@@ -103,7 +103,7 @@ export function SubscriptionSection() {
             {!isPro && (
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
               >
                 Upgrade to Pro
               </button>
@@ -117,12 +117,7 @@ export function SubscriptionSection() {
         </p>
       </div>
 
-      <FeatureComingSoonModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        featureName="Pro Plan"
-        benefits="Full risk analysis, detailed strategy tables, delegator intelligence, commission behavior history, operator comparison tools, watchlist with alerts, and priority API access."
-      />
+      <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

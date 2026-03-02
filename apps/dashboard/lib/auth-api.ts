@@ -341,3 +341,21 @@ export async function deleteAccount(): Promise<void> {
     );
   }
 }
+
+// ==================== PAYMENTS ====================
+
+export async function verifyPayment(txHash: string): Promise<{
+  success: boolean;
+  tier: string;
+  message: string;
+}> {
+  const res = await authFetch(`${BASE_URL}/api/v1/payments/verify`, {
+    method: "POST",
+    body: JSON.stringify({ txHash }),
+  });
+  return handleResponse<{
+    success: boolean;
+    tier: string;
+    message: string;
+  }>(res);
+}
