@@ -1,15 +1,23 @@
-import { StatCard } from '@/components/shared/data/StatCard';
-import { RiskBadge } from '@/components/shared/data/RiskBadge';
-import { Badge } from '@/components/ui/badge';
-import { Shield, ShieldAlert, Activity, Info } from 'lucide-react';
-import { OperatorRiskProfile } from '@/types/risk.types';
-import { StatusIndicator } from './StatusIndicator';
-import { formatNumber } from './utils';
+import { StatCard } from "@/components/shared/data/StatCard";
+import { RiskBadge } from "@/components/shared/data/RiskBadge";
+import { Badge } from "@/components/ui/badge";
+import { Shield, ShieldAlert, Activity, Info } from "lucide-react";
+import { OperatorRiskProfile } from "@/types/risk.types";
+import { StatusIndicator } from "./StatusIndicator";
+import { formatNumber } from "./utils";
 
-export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
+export const RiskOverview = ({
+  risk,
+  operationalDays,
+}: {
+  risk: OperatorRiskProfile;
+  operationalDays?: number;
+}) => {
+  const currentOperationalDays =
+    operationalDays ?? risk.metrics.activity.operational_days;
   const isSlashed = risk.metrics.slashing.count > 0;
-  const isNewOperator = risk.metrics.activity.operational_days < 30;
-  const isEstablished = risk.metrics.activity.operational_days >= 180;
+  const isNewOperator = currentOperationalDays < 30;
+  const isEstablished = currentOperationalDays >= 180;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -22,10 +30,14 @@ export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
           </div>
         }
         subtitle={
-          <RiskBadge level={risk.risk_level} score={risk.scores.confidence.toString()} scoreType='confidence' />
+          <RiskBadge
+            level={risk.risk_level}
+            score={risk.scores.confidence.toString()}
+            scoreType="confidence"
+          />
         }
         icon={
-          risk.risk_level === 'LOW' || risk.risk_level === 'MEDIUM' ? (
+          risk.risk_level === "LOW" || risk.risk_level === "MEDIUM" ? (
             <Shield className="h-6 w-6" />
           ) : (
             <ShieldAlert className="h-6 w-6" />
@@ -38,7 +50,9 @@ export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
         title="Slashing History"
         value={
           isSlashed ? (
-            <span className="text-red-600 text-[26px]">{risk.metrics.slashing.count} Events</span>
+            <span className="text-red-600 text-[26px]">
+              {risk.metrics.slashing.count} Events
+            </span>
           ) : (
             <span className="text-green-600 text-[26px]">Clean Record</span>
           )
@@ -46,7 +60,7 @@ export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
         subtitle={
           isSlashed ? (
             <span className="text-sm">
-              Total penalties: {risk.metrics.slashing.lifetime_amount}
+              {/* Total penalties: {risk.metrics.slashing.lifetime_amount} */}
             </span>
           ) : (
             <StatusIndicator status="success" label="No penalties recorded" />
@@ -64,7 +78,7 @@ export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
 
       <StatCard
         title="Operational History"
-        value={`${formatNumber(risk.metrics.activity.operational_days)} Days`}
+        value={`${formatNumber(currentOperationalDays)} Days`}
         subtitle={
           isNewOperator ? (
             <Badge variant="secondary" className="gap-1">
@@ -83,10 +97,10 @@ export const RiskOverview = ({ risk }: { risk: OperatorRiskProfile }) => {
         icon={<Activity className="h-6 w-6" />}
         tooltip={
           isNewOperator
-            ? 'New operator - limited historical data available for risk assessment'
+            ? "New operator - limited historical data available for risk assessment"
             : isEstablished
-            ? 'Long-standing operator with proven track record and extensive history'
-            : 'Operator with sufficient operational history for reliable risk assessment'
+              ? "Long-standing operator with proven track record and extensive history"
+              : "Operator with sufficient operational history for reliable risk assessment"
         }
       />
     </div>

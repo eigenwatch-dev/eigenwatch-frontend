@@ -380,15 +380,18 @@ const OperatorProfile = ({
               />
               <span
                 className={`text-sm font-semibold ${
-                  operator.performance_summary.total_slash_events > 0
+                  (riskData?.metrics.slashing.count ??
+                    operator.performance_summary.total_slash_events) > 0
                     ? "text-red-500"
                     : "text-green-500"
                 }`}
               >
-                {operator.performance_summary.total_slash_events}
+                {riskData?.metrics.slashing.count ??
+                  operator.performance_summary.total_slash_events}
               </span>
             </div>
-            {operator.performance_summary.total_slash_events > 0 ? (
+            {(riskData?.metrics.slashing.count ??
+              operator.performance_summary.total_slash_events) > 0 ? (
               <div className="flex items-center gap-2 text-xs text-red-500">
                 <AlertTriangle className="h-3 w-3" />
                 <span>Historical slashing detected</span>
@@ -458,7 +461,12 @@ const OperatorProfile = ({
         {activeTab === "commission" && (
           <CommissionTab operatorId={operatorId} />
         )}
-        {activeTab === "risk" && <RiskAnalysisTab operatorId={operatorId} />}
+        {activeTab === "risk" && (
+          <RiskAnalysisTab
+            operatorId={operatorId}
+            operationalDays={operator.status.operational_days}
+          />
+        )}
       </Tabs>
 
       <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
