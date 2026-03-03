@@ -389,3 +389,35 @@ export async function verifyPaystack(reference: string): Promise<{
     message: string;
   }>(res);
 }
+
+export async function initializeFlutterwave(email: string): Promise<{
+  authorization_url: string;
+}> {
+  const res = await authFetch(
+    `${BASE_URL}/api/v1/payments/flutterwave/initialize`,
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    },
+  );
+  return handleResponse<{ authorization_url: string }>(res);
+}
+
+export async function verifyFlutterwave(transactionId: string): Promise<{
+  success: boolean;
+  tier: string;
+  message: string;
+}> {
+  const res = await authFetch(
+    `${BASE_URL}/api/v1/payments/flutterwave/verify`,
+    {
+      method: "POST",
+      body: JSON.stringify({ transaction_id: transactionId }),
+    },
+  );
+  return handleResponse<{
+    success: boolean;
+    tier: string;
+    message: string;
+  }>(res);
+}

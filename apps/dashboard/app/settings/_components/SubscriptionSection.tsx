@@ -39,6 +39,47 @@ export function SubscriptionSection() {
           </p>
         </div>
 
+        <div className="p-4 rounded-lg bg-secondary/30 border border-border flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">Plan Status</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Current Plan:{" "}
+                <span className="text-foreground font-semibold">
+                  {user?.tier}
+                </span>
+              </span>
+              {user?.tier_expires_at && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span>
+                    Expires:{" "}
+                    <span className="text-foreground">
+                      {new Date(user.tier_expires_at).toLocaleDateString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
+                    </span>
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Support</p>
+            <a
+              href="mailto:support@eigenwatch.xyz"
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              support@eigenwatch.xyz
+            </a>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Free Plan */}
           <div

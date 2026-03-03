@@ -81,6 +81,7 @@ export const metadata: Metadata = {
 };
 
 import { DesktopOnlyGuard } from "@/components/shared/DesktopOnlyGuard";
+import Clarity from "@/components/shared/Clarity";
 
 export default async function RootLayout({
   children,
@@ -134,6 +135,7 @@ export default async function RootLayout({
             }),
           }}
         />
+        <Clarity />
       </body>
     </html>
   );

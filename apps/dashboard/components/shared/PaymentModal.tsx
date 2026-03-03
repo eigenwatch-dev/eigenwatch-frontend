@@ -16,24 +16,26 @@ import {
   ExternalLink,
   ShieldCheck,
   AlertCircle,
-  CreditCard,
   Wallet,
+  CheckCircle2,
 } from "lucide-react";
-import {
-  verifyPayment,
-  initializePaystack,
-  verifyPaystack,
-} from "@/lib/auth-api";
+import { verifyPayment } from "@/lib/auth-api";
 import useAuthStore from "@/hooks/store/useAuthStore";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-// USDC on Base
-const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address;
+// Configuration
 const ADMIN_ADDRESS = (process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS ||
   "0x0000000000000000000000000000000000000000") as Address;
-const PRO_PRICE = process.env.NEXT_PUBLIC_PRO_PRICE_USDC || "20"; // $20 USDC
+const PRO_PRICE = process.env.NEXT_PUBLIC_PRO_PRICE_USDC || "20"; // $20 USD equivalent
 
-const USDC_ABI = [
+const TOKENS = {
+  USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address,
+  USDT: "0xfde4C96c8593536e31f229ea8f37b2ada2699bb2" as Address,
+} as const;
+
+type TokenType = keyof typeof TOKENS;
+
+const ERC20_ABI = [
   {
     constant: false,
     inputs: [
@@ -62,35 +64,51 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { user, openAuthModal } = useAuthStore();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [method, setMethod] = useState<"crypto" | "card">("crypto");
+  const [selectedToken, setSelectedToken] = useState<TokenType>("USDC");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isInitializingPaystack, setIsInitializingPaystack] = useState(false);
 
   const emailVerified =
     user?.email_verified || user?.emails?.some((e) => e.is_verified);
 
-  // Check for Paystack callback
-  useEffect(() => {
-    const reference = searchParams.get("reference");
-    const trxref = searchParams.get("trxref");
-    if ((reference || trxref) && isOpen && !isVerifying) {
-      handleVerifyPaystack(reference || trxref || "");
-    }
-  }, [searchParams, isOpen]);
-
-  const { data: balance } = useReadContract({
-    address: USDC_ADDRESS,
-    abi: USDC_ABI,
+  const { data: usdcBalance } = useReadContract({
+    address: TOKENS.USDC,
+    abi: ERC20_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     chainId: base.id,
     query: {
-      enabled: !!address && method === "crypto",
+      enabled: !!address && isOpen,
     },
   });
+
+  const { data: usdtBalance } = useReadContract({
+    address: TOKENS.USDT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: base.id,
+    query: {
+      enabled: !!address && isOpen,
+    },
+  });
+
+  const proPriceUnits = parseUnits(PRO_PRICE, 6);
+
+  // Auto-select token based on sufficient balance
+  useEffect(() => {
+    if (usdcBalance !== undefined && usdtBalance !== undefined) {
+      const usdc = BigInt((usdcBalance as any) || 0);
+      const usdt = BigInt((usdtBalance as any) || 0);
+
+      if (usdc < proPriceUnits && usdt >= proPriceUnits) {
+        setSelectedToken("USDT");
+      } else if (usdt < proPriceUnits && usdc >= proPriceUnits) {
+        setSelectedToken("USDC");
+      }
+    }
+  }, [usdcBalance, usdtBalance, proPriceUnits]);
 
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
@@ -104,10 +122,10 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     }
   }, [isTxConfirmed, hash]);
 
-  const handleVerifyPayment = async (hash: string) => {
+  const handleVerifyPayment = async (txHash: string) => {
     setIsVerifying(true);
     try {
-      const result = await verifyPayment(hash);
+      const result = await verifyPayment(txHash);
       if (result.success) {
         toast.success("Account upgraded to PRO successfully!");
         window.location.reload();
@@ -121,27 +139,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     }
   };
 
-  const handleVerifyPaystack = async (ref: string) => {
-    setIsVerifying(true);
-    try {
-      const result = await verifyPaystack(ref);
-      if (result.success) {
-        toast.success("Account upgraded to PRO successfully!");
-        // Remove params from URL
-        const newUrl = window.location.pathname;
-        router.replace(newUrl);
-        window.location.reload();
-      } else {
-        toast.error(result.message || "Paystack verification failed.");
-      }
-    } catch (err: any) {
-      toast.error(
-        err.message || "An error occurred during Paystack verification.",
-      );
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+  const activeBalance = selectedToken === "USDC" ? usdcBalance : usdtBalance;
 
   const handlePayCrypto = async () => {
     if (chainId !== base.id) {
@@ -149,221 +147,224 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       return;
     }
 
-    if (typeof balance !== "bigint" || balance < parseUnits(PRO_PRICE, 6)) {
-      toast.error("Insufficient USDC balance on Base.");
+    const currentBalance = BigInt((activeBalance as any) || 0);
+    if (currentBalance < proPriceUnits) {
+      toast.error(`Insufficient ${selectedToken} balance on Base.`);
       return;
     }
 
     writeContract({
-      address: USDC_ADDRESS,
-      abi: USDC_ABI,
+      address: TOKENS[selectedToken],
+      abi: ERC20_ABI,
       functionName: "transfer",
-      args: [ADMIN_ADDRESS, parseUnits(PRO_PRICE, 6)],
+      args: [ADMIN_ADDRESS, proPriceUnits],
     });
-  };
-
-  const handlePayCard = async () => {
-    if (!user?.emails?.[0]?.email) {
-      toast.error("Please add an email to your profile first.");
-      return;
-    }
-
-    setIsInitializingPaystack(true);
-    try {
-      const { authorization_url } = await initializePaystack(
-        user.emails[0].email,
-      );
-      window.location.href = authorization_url;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to initialize Paystack.");
-    } finally {
-      setIsInitializingPaystack(false);
-    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80">
-      <div className="bg-card border border-border rounded-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">
-              Upgrade to Pro
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ✕
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 animate-in fade-in duration-200">
+      <div className="bg-card border border-border rounded-xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in duration-200">
+        {/* Header - Fixed */}
+        <div className="p-6 border-b border-border flex items-center justify-between shrink-0">
+          <h2 className="text-xl font-semibold text-foreground tracking-tight">
+            Upgrade to Pro
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+          >
+            ✕
+          </button>
+        </div>
 
-          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-3 text-sm text-blue-400">
-            <ShieldCheck className="h-5 w-5 shrink-0" />
-            <p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-4 text-sm text-blue-500">
+            <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
               Unlock advanced risk metrics, detailed strategy insights, and
               priority access by upgrading to PRO.
             </p>
           </div>
 
           {!emailVerified && (
-            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex gap-3 text-sm text-yellow-500">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p>
-                Email verification is required to upgrade to PRO. Please verify
-                your email to continue.
+            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex gap-4 text-sm text-yellow-500">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                Email verification is required to upgrade. Please verify your
+                email to continue.
               </p>
             </div>
           )}
 
-          {/* Payment Method Selector */}
-          <div className="flex p-1 bg-muted rounded-lg">
-            <button
-              onClick={() => setMethod("crypto")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
-                method === "crypto"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Wallet className="h-4 w-4" />
-              Crypto
-            </button>
-            <button
-              onClick={() => setMethod("card")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
-                method === "card"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              Card / Bank
-            </button>
+          {/* Token Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                Select Asset
+                <span className="ml-2 lowercase font-normal opacity-70">
+                  (Base Network)
+                </span>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              {[
+                { name: "USD Coin", symbol: "USDC", balance: usdcBalance },
+                { name: "Tether", symbol: "USDT", balance: usdtBalance },
+              ].map((token) => {
+                const balanceVal =
+                  token.balance !== undefined
+                    ? BigInt(token.balance as any)
+                    : undefined;
+                const isInsufficient =
+                  balanceVal !== undefined && balanceVal < proPriceUnits;
+
+                return (
+                  <button
+                    key={token.symbol}
+                    onClick={() => setSelectedToken(token.symbol as TokenType)}
+                    className={`relative flex items-center justify-between p-4 rounded-lg border transition-all ${
+                      selectedToken === token.symbol
+                        ? "bg-secondary border-blue-500/50"
+                        : "bg-background border-border hover:border-border-highlight"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`p-2.5 rounded-md ${
+                          selectedToken === token.symbol
+                            ? "bg-blue-500 text-white"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        <Wallet className="h-4 w-4" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-semibold">{token.name}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">
+                          {token.symbol}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p
+                        className={`text-sm font-mono font-medium tabular-nums ${
+                          isInsufficient ? "text-destructive" : "text-green-500"
+                        }`}
+                      >
+                        {token.balance !== undefined
+                          ? parseFloat(
+                              formatUnits(BigInt(token.balance as any), 6),
+                            ).toFixed(2)
+                          : "0.00"}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
+                        Balance
+                      </p>
+                    </div>
+
+                    {selectedToken === token.symbol && (
+                      <div className="absolute -top-1.5 -right-1.5 bg-blue-500 rounded-full p-0.5 text-white shadow-sm ring-2 ring-card">
+                        <CheckCircle2 className="h-3 w-3" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 pt-6 border-t border-border">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Plan</span>
-              <span className="font-medium text-foreground">PRO (1 Month)</span>
+              <span className="text-muted-foreground">Plan Duration</span>
+              <span className="font-semibold text-foreground">30 Days</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">Price</span>
-              <span className="font-medium text-foreground">
-                ${PRO_PRICE} USD
+              <span className="text-lg font-bold text-foreground font-mono">
+                ${PRO_PRICE}{" "}
+                <span className="text-xs text-muted-foreground font-normal">
+                  USD
+                </span>
               </span>
             </div>
-            <div className="flex justify-between items-center text-sm font-medium text-blue-400/80">
-              <span className="text-xs">Access ends after 30 days</span>
+            <div className="bg-secondary/50 p-3 rounded text-[11px] text-muted-foreground text-center">
+              Access is one-time and ends automatically after 30 days.
             </div>
-            {method === "crypto" ? (
-              <>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Network</span>
-                  <span className="font-medium text-foreground">Base</span>
-                </div>
-                {typeof balance === "bigint" && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Your Balance</span>
-                    <span
-                      className={`font-medium tabular-nums ${balance < parseUnits(PRO_PRICE, 6) ? "text-red-400" : "text-foreground"}`}
-                    >
-                      {parseFloat(formatUnits(balance, 6)).toFixed(2)} USDC
-                    </span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Provider</span>
-                <span className="font-medium text-foreground">Paystack</span>
-              </div>
-            )}
           </div>
+        </div>
 
+        {/* Footer Actions - Fixed */}
+        <div className="p-6 border-t border-border shrink-0">
           <div className="space-y-3">
             {!emailVerified ? (
               <button
                 onClick={() => openAuthModal("email")}
-                className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-bold transition-all text-sm"
               >
                 Verify Email to Continue
               </button>
-            ) : method === "crypto" ? (
-              chainId !== base.id ? (
-                <button
-                  onClick={() => switchChain({ chainId: base.id })}
-                  className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  Switch to Base Network
-                </button>
-              ) : isPending || isWaitingForTx || isVerifying ? (
-                <div className="space-y-3">
-                  <button
-                    disabled
-                    className="w-full py-3 rounded-lg bg-primary/50 text-primary-foreground font-semibold flex items-center justify-center gap-2"
-                  >
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    {isPending
-                      ? "Confirming in Wallet..."
-                      : isWaitingForTx
-                        ? "Waiting for Transaction..."
-                        : "Verifying Payment..."}
-                  </button>
-                  {hash && (
-                    <a
-                      href={`https://basescan.org/tx/${hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      View on Basescan <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={handlePayCrypto}
-                  className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all shadow-lg shadow-primary/20"
-                >
-                  Pay {PRO_PRICE} USDC
-                </button>
-              )
-            ) : isInitializingPaystack || isVerifying ? (
+            ) : chainId !== base.id ? (
               <button
-                disabled
-                className="w-full py-3 rounded-lg bg-primary/50 text-primary-foreground font-semibold flex items-center justify-center gap-2"
+                onClick={() => switchChain({ chainId: base.id })}
+                className="w-full py-3.5 rounded-md bg-transparent border border-blue-500 text-blue-500 hover:bg-blue-500/5 font-bold transition-all text-sm"
               >
-                <Loader2 className="h-5 w-5 animate-spin" />
-                {isInitializingPaystack
-                  ? "Initializing..."
-                  : "Verifying Payment..."}
+                Switch to Base Network
               </button>
+            ) : isPending || isWaitingForTx || isVerifying ? (
+              <div className="space-y-3">
+                <button
+                  disabled
+                  className="w-full py-3.5 rounded-md bg-secondary text-muted-foreground font-bold flex items-center justify-center gap-3 text-sm"
+                >
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>
+                    {isPending
+                      ? "Check Wallet..."
+                      : isWaitingForTx
+                        ? "Confirming on Base..."
+                        : "Upgrading Tier..."}
+                  </span>
+                </button>
+                {hash && (
+                  <a
+                    href={`https://basescan.org/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 text-[10px] font-bold text-muted-foreground hover:text-blue-500 transition-colors uppercase tracking-widest font-mono"
+                  >
+                    View on Basescan <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
             ) : (
               <button
-                onClick={handlePayCard}
-                className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all shadow-lg shadow-primary/20"
+                onClick={handlePayCrypto}
+                className="w-full py-3.5 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-bold transition-all text-sm"
               >
-                Continue to Checkout
+                Pay ${PRO_PRICE} with {selectedToken}
               </button>
             )}
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex gap-2 text-xs text-red-400">
+              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 flex gap-3 text-xs text-destructive items-center">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <p>
+                <p className="font-semibold">
                   {error.message.includes("User rejected")
                     ? "Transaction rejected."
-                    : "Transaction failed."}
+                    : "Payment failed. Try again."}
                 </p>
               </div>
             )}
           </div>
 
-          <p className="text-[10px] text-center text-muted-foreground">
-            Payments are processed on-chain. Once the transaction is confirmed,
-            your account will be upgraded automatically.
+          <p className="mt-4 text-[10px] text-center text-muted-foreground/60 leading-relaxed font-mono">
+            On-chain payments via Base. Upgrade is instantaneous after network
+            confirmation.
           </p>
         </div>
       </div>

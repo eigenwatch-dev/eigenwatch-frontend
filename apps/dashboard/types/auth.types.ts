@@ -12,6 +12,7 @@ export interface User {
   emails?: UserEmail[];
   preferences?: UserPreferences;
   created_at: string;
+  tier_expires_at?: string;
 }
 
 export interface UserEmail {
