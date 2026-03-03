@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { Operator } from "@/types/operator.types";
 import { ProGateCell } from "@/components/shared/ProGateCell";
 import { useProAccess } from "@/hooks/useProAccess";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const RISK_COLORS: Record<string, string> = {
   low: "text-green-500 bg-green-500/10 border-green-500/20",
@@ -31,7 +32,9 @@ function RiskPill({ level }: { level: string }) {
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${RISK_COLORS[key] || RISK_COLORS.medium}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${RISK_DOT_COLORS[key] || RISK_DOT_COLORS.medium}`} />
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${RISK_DOT_COLORS[key] || RISK_DOT_COLORS.medium}`}
+      />
       {key}
     </span>
   );
@@ -56,12 +59,14 @@ export function OperatorList({
   const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(20);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 2000);
 
   const { data, isLoading } = useOperators(
-    { limit, offset },
+    { limit, offset, search: debouncedSearch },
     {
       initialData:
-        offset === 0
+        offset === 0 && !debouncedSearch
           ? { data: initialData, pagination: initialPagination }
           : undefined,
     },
@@ -82,7 +87,12 @@ export function OperatorList({
   return (
     <ListEntityView
       entity="Operators"
-      searchPlaceholder="Search operators by name, ID, or address..."
+      searchPlaceholder="Search operators by address..."
+      searchValue={searchQuery}
+      onSearchChange={(val) => {
+        setSearchQuery(val);
+        setOffset(0);
+      }}
       tableConfig={{
         columns: operatorsColumns,
         data: operatorData.map((operator) => ({
@@ -93,12 +103,12 @@ export function OperatorList({
               feature="Risk Score"
               description="Unlock risk scores to evaluate operator safety before delegating."
             >
-              <span className="font-medium tabular-nums">{operator.risk_score ?? "—"}</span>
+              <span className="font-medium tabular-nums">
+                {operator.risk_score ?? "—"}
+              </span>
             </ProGateCell>
           ),
-          risk_level: (
-            <RiskPill level={operator.risk_level} />
-          ),
+          risk_level: <RiskPill level={operator.risk_level} />,
           operator: (
             <div className="flex gap-[12px]">
               <Avatar className="w-[32px] h-[32px] rounded-[10px]">

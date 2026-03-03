@@ -68,7 +68,6 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
         shares_percentage: delegator.shares_percentage,
         strategies_count: "3 Strategies",
         delegated_at: new Date(delegator.delegated_at).toLocaleDateString(),
-        status: <span className="text-green-500">Active</span>,
       }))
     : delegatorsList.map((delegator) => {
         const delegatorTvs = parseFloat(delegator.total_tvs || "0");
@@ -82,15 +81,6 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
           shares_percentage: `${percentage.toFixed(4)}%`,
           strategies_count: `${delegator.strategies.length} Strategies`,
           delegated_at: new Date(delegator.delegated_at).toLocaleDateString(),
-          status: (
-            <span
-              className={
-                delegator.is_delegated ? "text-green-500" : "text-red-500"
-              }
-            >
-              {delegator.is_delegated ? "Active" : "Inactive"}
-            </span>
-          ),
         };
       });
 
@@ -102,7 +92,7 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
         {/* TODO: Find this metric and add */}
         <StatCard
           title={"Delegation HHI"}
-          value={0}
+          value={"---"}
           subtitle={"Low concentration"}
         />
       </div>
@@ -120,7 +110,6 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
               { key: "shares_percentage", displayName: "% Staked" },
               { key: "strategies_count", displayName: "Strategies" },
               { key: "delegated_at", displayName: "Delegation Date" },
-              { key: "status", displayName: "Status" },
             ]}
             data={displayData}
             tableFilters={{ title: "Delegator List" }}

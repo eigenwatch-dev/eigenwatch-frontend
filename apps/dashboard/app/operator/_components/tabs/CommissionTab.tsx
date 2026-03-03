@@ -60,7 +60,7 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
     );
   }
 
-  const piCommission = commission?.pi_commission || 0;
+  const piCommission = commission?.pi_commission?.current_bips || 0;
   const benchmarks = commission?.network_benchmarks;
   const tier = getCommissionTier(piCommission, benchmarks);
   const tierDisplay = getTierDisplay(tier);
@@ -77,7 +77,9 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
     avs_name: (
       <div className="flex items-center gap-2">
         <Avatar className="size-6">
-          {avs.avs_logo && <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />}
+          {avs.avs_logo && (
+            <AvatarImage src={avs.avs_logo} alt={avs.avs_name || "AVS"} />
+          )}
           <AvatarFallback className="text-[10px]">
             {(avs.avs_name || "?").slice(0, 2).toUpperCase()}
           </AvatarFallback>
@@ -88,9 +90,13 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
     commission_rate: formatCommission(avs.current_bips),
     stability:
       avs.total_changes === 0 ? "Stable" : `${avs.total_changes} changes`,
-    rate_age: avs.first_set_at
-      ? formatDistanceToNow(new Date(avs.first_set_at), { addSuffix: false })
-      : "—",
+    rate_age: (() => {
+      if (!avs.first_set_at) return "—";
+      const date = new Date(avs.first_set_at);
+      // EigenLayer Stage 1 launched June 2023. Any date before 2023 is likely a default/epoch timestamp.
+      if (date.getFullYear() < 2023) return "Never changed";
+      return formatDistanceToNow(date, { addSuffix: false });
+    })(),
     pending: avs.upcoming_bips
       ? `${formatCommission(avs.upcoming_bips)} on ${avs.upcoming_activated_at ? new Date(avs.upcoming_activated_at).toLocaleDateString() : "TBD"}`
       : null,
@@ -120,8 +126,13 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
     rate_age: `${30 + i * 5} days`,
   }));
 
-  const paginatedAvsTableData = avsTableData.slice(commOffset, commOffset + commLimit);
-  const displayAvsTableData = isFree ? DUMMY_COMMISSIONS : paginatedAvsTableData;
+  const paginatedAvsTableData = avsTableData.slice(
+    commOffset,
+    commOffset + commLimit,
+  );
+  const displayAvsTableData = isFree
+    ? DUMMY_COMMISSIONS
+    : paginatedAvsTableData;
 
   return (
     <div className="space-y-6">

@@ -66,7 +66,7 @@ export default function CTA({ stats }: CTAProps) {
             </h2>
             <p className="text-[#9F9FA9] text-base sm:text-lg lg:text-xl max-w-2xl mx-auto mb-10 sm:mb-12 font-medium">
               Explore operator risk scores, track delegated assets, and discover
-              the safest operators on EigenLayer — all for free.
+              the safest operators on EigenLayer.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-10 sm:mb-14 items-center px-4 sm:px-0">

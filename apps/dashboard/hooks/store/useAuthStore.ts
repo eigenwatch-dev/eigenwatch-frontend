@@ -31,7 +31,7 @@ const useAuthStore = create<AuthState>((set) => ({
   isRestoring: true,
   tier: "FREE",
   showAuthModal: false,
-  authStep: "sign",
+  authStep: "connect",
 
   setUser: (user) =>
     set({
@@ -54,15 +54,16 @@ const useAuthStore = create<AuthState>((set) => ({
   setAuthStep: (authStep) => set({ authStep }),
 
   logout: () =>
-    set({
+    set((state) => ({
       user: null,
       accessToken: null,
       isAuthenticated: false,
       isAuthenticating: false,
       tier: "FREE",
-      showAuthModal: false,
-      authStep: "sign",
-    }),
+      // Only close/reset modal if it's not currently being used for an active flow
+      showAuthModal: state.showAuthModal,
+      authStep: state.showAuthModal ? state.authStep : "connect",
+    })),
 }));
 
 export default useAuthStore;

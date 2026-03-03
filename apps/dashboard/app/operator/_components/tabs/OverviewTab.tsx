@@ -234,159 +234,149 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
       </div>
 
       {/* TVS Trend Chart */}
-      <SectionContainer
-        heading="Total Value Secured - 6 Month Trend"
-        info={EDUCATIONAL_TOOLTIPS.tvs.detailed}
-      >
-        {loadingSnapshots ? (
-          <div className="h-[300px] flex items-center justify-center">
-            <Skeleton className="h-full w-full" />
-          </div>
-        ) : hasTvsData && chartData.length > 0 ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm px-1">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Activity className="h-4 w-4" />
-                <span>
-                  Current: $
-                  {compactNumber(chartData[chartData.length - 1]?.tvs_usd || 0)}
-                </span>
+      {hasTvsData && chartData.length > 0 && (
+        <SectionContainer
+          heading="Total Value Secured - 6 Month Trend"
+          info={EDUCATIONAL_TOOLTIPS.tvs.detailed}
+        >
+          {loadingSnapshots ? (
+            <div className="h-[300px] flex items-center justify-center">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm px-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Activity className="h-4 w-4" />
+                  <span>
+                    Current: $
+                    {compactNumber(
+                      chartData[chartData.length - 1]?.tvs_usd || 0,
+                    )}
+                  </span>
+                </div>
+                {tvsTrend && (
+                  <Badge
+                    variant="outline"
+                    className={
+                      parseFloat(tvsTrend) >= 0
+                        ? "text-green-500 border-green-500/30"
+                        : "text-red-500 border-red-500/30"
+                    }
+                  >
+                    {parseFloat(tvsTrend) >= 0 ? "+" : ""}
+                    {tvsTrend}%
+                  </Badge>
+                )}
               </div>
-              {tvsTrend && (
-                <Badge
-                  variant="outline"
-                  className={
-                    parseFloat(tvsTrend) >= 0
-                      ? "text-green-500 border-green-500/30"
-                      : "text-red-500 border-red-500/30"
-                  }
-                >
-                  {parseFloat(tvsTrend) >= 0 ? "+" : ""}
-                  {tvsTrend}%
-                </Badge>
-              )}
+              <AreaChart
+                data={chartData}
+                index="date"
+                categories={["tvs_usd"]}
+                colors={["var(--chart-1)"]}
+                valueFormatter={(value) => `$${compactNumber(value)}`}
+                height={300}
+              />
             </div>
-            <AreaChart
-              data={chartData}
-              index="date"
-              categories={["tvs_usd"]}
-              colors={["var(--chart-1)"]}
-              valueFormatter={(value) => `$${compactNumber(value)}`}
-              height={300}
-            />
-          </div>
-        ) : (
-          <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-lg border border-dashed border-border">
-            <div className="text-center p-6">
-              <AlertCircle className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-              <p className="text-sm font-medium text-muted-foreground">
-                TVS Historical Data Not Available
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Historical TVS tracking is being implemented. Current TVS is
-                shown in the header.
-              </p>
-            </div>
-          </div>
-        )}
-      </SectionContainer>
+          )}
+        </SectionContainer>
+      )}
 
       {/* Delegator & AVS Growth */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Delegators Trend */}
-        <SectionContainer
-          heading="Delegators Over Time"
-          info="Number of unique addresses delegating to this operator over time"
-        >
-          {loadingSnapshots ? (
-            <Skeleton className="h-[220px] w-full" />
-          ) : hasDelegatorData && chartData.length > 0 ? (
-            <div className="space-y-2">
-              {/* Trend indicator */}
-              <div className="flex items-center justify-between text-sm px-1">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="h-4 w-4" />
-                  <span>
-                    Current: {chartData[chartData.length - 1]?.delegators || 0}
-                  </span>
+      {(hasDelegatorData || hasAvsData) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Delegators Trend */}
+          {hasDelegatorData && chartData.length > 0 && (
+            <SectionContainer
+              heading="Delegators Over Time"
+              info="Number of unique addresses delegating to this operator over time"
+            >
+              {loadingSnapshots ? (
+                <Skeleton className="h-[220px] w-full" />
+              ) : (
+                <div className="space-y-2">
+                  {/* Trend indicator */}
+                  <div className="flex items-center justify-between text-sm px-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span>
+                        Current:{" "}
+                        {chartData[chartData.length - 1]?.delegators || 0}
+                      </span>
+                    </div>
+                    {delegatorTrend && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          parseFloat(delegatorTrend) >= 0
+                            ? "text-green-500 border-green-500/30"
+                            : "text-red-500 border-red-500/30"
+                        }
+                      >
+                        {parseFloat(delegatorTrend) >= 0 ? "+" : ""}
+                        {delegatorTrend}%
+                      </Badge>
+                    )}
+                  </div>
+                  <LineChart
+                    data={chartData}
+                    index="date"
+                    categories={["delegators"]}
+                    colors={["var(--chart-2)"]}
+                    valueFormatter={integerFormat}
+                    height={200}
+                  />
                 </div>
-                {delegatorTrend && (
-                  <Badge
-                    variant="outline"
-                    className={
-                      parseFloat(delegatorTrend) >= 0
-                        ? "text-green-500 border-green-500/30"
-                        : "text-red-500 border-red-500/30"
-                    }
-                  >
-                    {parseFloat(delegatorTrend) >= 0 ? "+" : ""}
-                    {delegatorTrend}%
-                  </Badge>
-                )}
-              </div>
-              <LineChart
-                data={chartData}
-                index="date"
-                categories={["delegators"]}
-                colors={["var(--chart-2)"]}
-                valueFormatter={integerFormat}
-                height={200}
-              />
-            </div>
-          ) : (
-            <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm bg-muted/30 rounded-lg">
-              No delegator data available
-            </div>
+              )}
+            </SectionContainer>
           )}
-        </SectionContainer>
 
-        {/* AVS Count Trend */}
-        <SectionContainer
-          heading="AVS Registrations Over Time"
-          info={EDUCATIONAL_TOOLTIPS.avs.short}
-        >
-          {loadingSnapshots ? (
-            <Skeleton className="h-[220px] w-full" />
-          ) : hasAvsData && chartData.length > 0 ? (
-            <div className="space-y-2">
-              {/* Trend indicator */}
-              <div className="flex items-center justify-between text-sm px-1">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Shield className="h-4 w-4" />
-                  <span>
-                    Current: {chartData[chartData.length - 1]?.avs || 0} AVS
-                  </span>
+          {/* AVS Count Trend */}
+          {hasAvsData && chartData.length > 0 && (
+            <SectionContainer
+              heading="AVS Registrations Over Time"
+              info={EDUCATIONAL_TOOLTIPS.avs.short}
+            >
+              {loadingSnapshots ? (
+                <Skeleton className="h-[220px] w-full" />
+              ) : (
+                <div className="space-y-2">
+                  {/* Trend indicator */}
+                  <div className="flex items-center justify-between text-sm px-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Shield className="h-4 w-4" />
+                      <span>
+                        Current: {chartData[chartData.length - 1]?.avs || 0} AVS
+                      </span>
+                    </div>
+                    {avsTrend && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          parseFloat(avsTrend) >= 0
+                            ? "text-green-500 border-green-500/30"
+                            : "text-red-500 border-red-500/30"
+                        }
+                      >
+                        {parseFloat(avsTrend) >= 0 ? "+" : ""}
+                        {avsTrend}%
+                      </Badge>
+                    )}
+                  </div>
+                  <LineChart
+                    data={chartData}
+                    index="date"
+                    categories={["avs"]}
+                    colors={["var(--chart-3)"]}
+                    valueFormatter={integerFormat}
+                    height={200}
+                  />
                 </div>
-                {avsTrend && (
-                  <Badge
-                    variant="outline"
-                    className={
-                      parseFloat(avsTrend) >= 0
-                        ? "text-green-500 border-green-500/30"
-                        : "text-red-500 border-red-500/30"
-                    }
-                  >
-                    {parseFloat(avsTrend) >= 0 ? "+" : ""}
-                    {avsTrend}%
-                  </Badge>
-                )}
-              </div>
-              <LineChart
-                data={chartData}
-                index="date"
-                categories={["avs"]}
-                colors={["var(--chart-3)"]}
-                valueFormatter={integerFormat}
-                height={200}
-              />
-            </div>
-          ) : (
-            <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm bg-muted/30 rounded-lg">
-              No AVS data available
-            </div>
+              )}
+            </SectionContainer>
           )}
-        </SectionContainer>
-      </div>
+        </div>
+      )}
 
       {/* Educational note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">
