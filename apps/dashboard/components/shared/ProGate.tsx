@@ -12,7 +12,7 @@ interface ProUpgradeCardProps {
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { PaymentModal } from "@/components/shared/PaymentModal";
 
 export function ProUpgradeCard({ feature, description }: ProUpgradeCardProps) {
   const router = useRouter();
@@ -55,12 +55,7 @@ export function ProUpgradeCard({ feature, description }: ProUpgradeCardProps) {
         </CardContent>
       </Card>
 
-      <FeatureComingSoonModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        featureName="Pro Plan"
-        benefits="Full risk analysis, detailed strategy tables, delegator intelligence, commission behavior history, operator comparison tools, watchlist with alerts, and priority API access."
-      />
+      <PaymentModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </>
   );
 }

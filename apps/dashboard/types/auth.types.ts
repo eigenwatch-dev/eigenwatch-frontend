@@ -6,8 +6,11 @@ export interface User {
   id: string;
   wallet_address: string;
   tier: UserTier;
+  email_verified: boolean;
   display_name?: string;
+  avatar_url?: string;
   emails?: UserEmail[];
+  preferences?: UserPreferences;
   created_at: string;
 }
 

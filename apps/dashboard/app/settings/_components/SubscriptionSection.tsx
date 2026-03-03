@@ -3,7 +3,7 @@
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { PaymentModal } from "./PaymentModal";
+import { PaymentModal } from "@/components/shared/PaymentModal";
 
 const FREE_FEATURES = [
   "View operator summaries and aggregates",
