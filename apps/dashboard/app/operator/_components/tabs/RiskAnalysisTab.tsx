@@ -14,9 +14,13 @@ import { formatDate } from "./risk/utils";
 
 interface RiskAnalysisTabProps {
   operatorId: string;
+  operationalDays?: number;
 }
 
-export const RiskAnalysisTab = ({ operatorId }: RiskAnalysisTabProps) => {
+export const RiskAnalysisTab = ({
+  operatorId,
+  operationalDays,
+}: RiskAnalysisTabProps) => {
   const { isFree } = useProAccess();
   const { data: risk, isLoading } = useRiskAssessment(operatorId);
 
@@ -70,7 +74,7 @@ export const RiskAnalysisTab = ({ operatorId }: RiskAnalysisTabProps) => {
       >
         <div className="space-y-4">
           {/* Hero Section - Risk Overview */}
-          <RiskOverview risk={risk} />
+          <RiskOverview risk={risk} operationalDays={operationalDays} />
 
           {/* All Component Scores */}
           <RiskScoreBreakdown risk={risk} />

@@ -28,7 +28,7 @@ import { RiskBadge } from "@/components/shared/data/RiskBadge";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { CardContainer } from "@/components/shared/data/CardContainer";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
-import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { PaymentModal } from "@/components/shared/PaymentModal";
 import { ProBadge } from "@/components/shared/ProGate";
 import { ProGateCell } from "@/components/shared/ProGateCell";
 import { useProAccess } from "@/hooks/useProAccess";
@@ -80,11 +80,11 @@ const OperatorProfile = ({
   // Hydrate React Query with server-fetched data (no loading flash on SSR)
   const { data: operatorData, isLoading: loadingOperator } = useOperator(
     operatorId,
-    { initialData: initialOperator }
+    { initialData: initialOperator },
   );
   const { data: statsData, isLoading: loadingStats } = useOperatorStats(
     operatorId,
-    { initialData: initialStats }
+    { initialData: initialStats },
   );
   const { data: riskData } = useRiskAssessment(operatorId);
 
@@ -99,8 +99,7 @@ const OperatorProfile = ({
     }
   };
 
-  const handleFeatureClick = (name: string, benefits: string) => {
-    setSelectedFeature({ name, benefits });
+  const handleFeatureClick = () => {
     setModalOpen(true);
   };
 
@@ -152,7 +151,7 @@ const OperatorProfile = ({
           break;
       }
     },
-    [operatorId, queryClient]
+    [operatorId, queryClient],
   );
 
   if (loadingOperator) {
@@ -281,37 +280,13 @@ const OperatorProfile = ({
           </div>
 
           <div className="flex gap-2 ">
-            <Button
-              size="sm"
-              onClick={() =>
-                handleFeatureClick(
-                  "Compare Operators",
-                  "Compare performance metrics, fees, and risk scores across multiple operators side-by-side to make informed delegation decisions.",
-                )
-              }
-            >
+            <Button size="sm" onClick={handleFeatureClick}>
               Compare
             </Button>
-            <Button
-              size="sm"
-              onClick={() =>
-                handleFeatureClick(
-                  "Watchlist",
-                  "Track your favorite operators and receive real-time alerts on performance changes, slashing events, and fee updates.",
-                )
-              }
-            >
+            <Button size="sm" onClick={handleFeatureClick}>
               Watch
             </Button>
-            <Button
-              size="sm"
-              onClick={() =>
-                handleFeatureClick(
-                  "Direct Delegation",
-                  "Delegate your restaked assets directly to this operator from the dashboard with a seamless, one-click transaction flow.",
-                )
-              }
-            >
+            <Button size="sm" onClick={handleFeatureClick}>
               Delegate
             </Button>
           </div>
@@ -405,15 +380,18 @@ const OperatorProfile = ({
               />
               <span
                 className={`text-sm font-semibold ${
-                  operator.performance_summary.total_slash_events > 0
+                  (riskData?.metrics.slashing.count ??
+                    operator.performance_summary.total_slash_events) > 0
                     ? "text-red-500"
                     : "text-green-500"
                 }`}
               >
-                {operator.performance_summary.total_slash_events}
+                {riskData?.metrics.slashing.count ??
+                  operator.performance_summary.total_slash_events}
               </span>
             </div>
-            {operator.performance_summary.total_slash_events > 0 ? (
+            {(riskData?.metrics.slashing.count ??
+              operator.performance_summary.total_slash_events) > 0 ? (
               <div className="flex items-center gap-2 text-xs text-red-500">
                 <AlertTriangle className="h-3 w-3" />
                 <span>Historical slashing detected</span>
@@ -442,10 +420,7 @@ const OperatorProfile = ({
           >
             Strategies
           </TabsTrigger>
-          <TabsTrigger
-            value="avs"
-            onMouseEnter={() => handleTabHover("avs")}
-          >
+          <TabsTrigger value="avs" onMouseEnter={() => handleTabHover("avs")}>
             AVS
           </TabsTrigger>
           <TabsTrigger
@@ -466,10 +441,7 @@ const OperatorProfile = ({
           >
             Commission
           </TabsTrigger>
-          <TabsTrigger
-            value="risk"
-            onMouseEnter={() => handleTabHover("risk")}
-          >
+          <TabsTrigger value="risk" onMouseEnter={() => handleTabHover("risk")}>
             Risk Analysis <ProBadge />
           </TabsTrigger>
         </TabsList>
@@ -489,15 +461,15 @@ const OperatorProfile = ({
         {activeTab === "commission" && (
           <CommissionTab operatorId={operatorId} />
         )}
-        {activeTab === "risk" && <RiskAnalysisTab operatorId={operatorId} />}
+        {activeTab === "risk" && (
+          <RiskAnalysisTab
+            operatorId={operatorId}
+            operationalDays={operator.status.operational_days}
+          />
+        )}
       </Tabs>
 
-      <FeatureComingSoonModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        featureName={selectedFeature.name}
-        benefits={selectedFeature.benefits}
-      />
+      <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 };

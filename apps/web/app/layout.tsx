@@ -6,6 +6,7 @@ import Footer from "@/components/layout/footer";
 import { ThemeProvider } from "@/contexts/theme-context";
 import WalletProvider from "../../../packages/ui/src/providers/wallet";
 import SmoothScrollProvider from "@/components/ui/smooth-scroll-provider";
+import Clarity from "@/components/layout/Clarity";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -115,6 +116,7 @@ export default async function RootLayout({
             }),
           }}
         />
+        <Clarity />
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { PaymentModal } from "@/components/shared/PaymentModal";
 
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,12 +83,7 @@ export function ProGateCell({
         </PopoverContent>
       </Popover>
 
-      <FeatureComingSoonModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        featureName="Pro Plan"
-        benefits="Full risk analysis, detailed strategy tables, delegator intelligence, commission behavior history, operator comparison tools, watchlist with alerts, and priority API access."
-      />
+      <PaymentModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </>
   );
 }

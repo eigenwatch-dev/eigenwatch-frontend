@@ -3,7 +3,7 @@
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
+import { PaymentModal } from "@/components/shared/PaymentModal";
 
 const FREE_FEATURES = [
   "View operator summaries and aggregates",
@@ -37,6 +37,47 @@ export function SubscriptionSection() {
           <p className="text-sm text-muted-foreground mt-1">
             Your current plan and available upgrades.
           </p>
+        </div>
+
+        <div className="p-4 rounded-lg bg-secondary/30 border border-border flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">Plan Status</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Current Plan:{" "}
+                <span className="text-foreground font-semibold">
+                  {user?.tier}
+                </span>
+              </span>
+              {user?.tier_expires_at && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span>
+                    Expires:{" "}
+                    <span className="text-foreground">
+                      {new Date(user.tier_expires_at).toLocaleDateString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
+                    </span>
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Support</p>
+            <a
+              href="mailto:support@eigenwatch.xyz"
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              support@eigenwatch.xyz
+            </a>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -84,8 +125,8 @@ export function SubscriptionSection() {
                   Current
                 </span>
               ) : (
-                <span className="text-xs text-muted-foreground">
-                  Coming soon
+                <span className="text-xs text-blue-500 font-medium">
+                  Available Now
                 </span>
               )}
             </div>
@@ -103,7 +144,7 @@ export function SubscriptionSection() {
             {!isPro && (
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
               >
                 Upgrade to Pro
               </button>
@@ -117,12 +158,7 @@ export function SubscriptionSection() {
         </p>
       </div>
 
-      <FeatureComingSoonModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        featureName="Pro Plan"
-        benefits="Full risk analysis, detailed strategy tables, delegator intelligence, commission behavior history, operator comparison tools, watchlist with alerts, and priority API access."
-      />
+      <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
