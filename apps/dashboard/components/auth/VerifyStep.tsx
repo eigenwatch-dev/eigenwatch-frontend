@@ -107,6 +107,7 @@ export function VerifyStep() {
         setUser({ ...user, emails: updatedEmails });
       }
       closeAuthModal();
+      window.location.reload();
     } catch {
       setError("Invalid code. Please try again.");
       setCode(Array(CODE_LENGTH).fill(""));
@@ -130,6 +131,7 @@ export function VerifyStep() {
 
   function handleSkip() {
     closeAuthModal();
+    window.location.reload();
   }
 
   return (

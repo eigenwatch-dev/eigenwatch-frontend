@@ -62,6 +62,7 @@ export function EmailStep() {
 
   function handleSkip() {
     closeAuthModal();
+    window.location.reload();
   }
 
   return (
