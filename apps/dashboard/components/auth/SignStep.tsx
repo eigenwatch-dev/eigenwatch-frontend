@@ -56,6 +56,7 @@ export function SignStep() {
       if (hasVerifiedEmail) {
         // User already has a verified email — we're done
         useAuthStore.getState().closeAuthModal();
+        window.location.reload();
       } else if (hasUnverifiedEmail) {
         // User has an unverified email — skip to verify step
         setAuthStep("verify");
