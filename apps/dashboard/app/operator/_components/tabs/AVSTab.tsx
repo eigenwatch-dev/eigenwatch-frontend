@@ -19,21 +19,6 @@ interface AVSTabProps {
   operatorId: string;
 }
 
-interface AVSRelationship {
-  avs_id?: string;
-  avs_name?: string;
-  avs_logo?: string | null;
-  status?: string;
-  days_registered?: number;
-  operator_set_count?: number;
-  operator_sets?: number;
-  total_allocated_usd?: string;
-  effective_commission_bips?: number;
-  effective_commission_pct?: string;
-  commission?: number;
-  commissions?: string;
-}
-
 export const AVSTab = ({ operatorId }: AVSTabProps) => {
   const { isFree } = useProAccess();
   const [offset, setOffset] = useState(0);
@@ -43,7 +28,9 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
     isLoading,
     isFetching,
   } = useOperatorAVS(operatorId, { limit, offset });
-  const avsList: AVSRelationship[] = avsData?.avs_relationships || [];
+  const avsList = avsData?.avs_relationships || [];
+  const totalAvs = avsData?.total_avs || 0;
+  const activeAvs = avsData?.active_avs || 0;
 
   if (isLoading) {
     return (
@@ -63,9 +50,6 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
   }
 
   // Calculate metrics
-  const registeredCount = avsList.filter(
-    (avs) => avs.status === "registered",
-  ).length;
   const totalAllocatedUsd = avsList.reduce(
     (sum, avs) => sum + parseFloat(avs.total_allocated_usd || "0"),
     0,
@@ -73,14 +57,24 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
   const avgCommission =
     avsList.length > 0
       ? avsList.reduce(
-          (s, a) => s + (a.effective_commission_bips || a.commission || 0),
+          (s, a) =>
+            s +
+            (a.effective_commission_bips ||
+              a.avs_commission_bips ||
+              a.commission ||
+              0),
           0,
         ) /
         avsList.length /
         100
       : 0;
   const totalOperatorSets = avsList.reduce(
-    (sum, avs) => sum + (avs.operator_set_count || avs.operator_sets || 0),
+    (sum, avs) =>
+      sum +
+      (avs.active_operator_set_count ||
+        avs.operator_set_count ||
+        avs.operator_sets ||
+        0),
     0,
   );
 
@@ -99,9 +93,13 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
         <span>{avs.avs_name || "Unknown AVS"}</span>
       </div>
     ),
-    status: avs.status || "unknown",
-    days_registered: avs.days_registered || 0,
-    operator_sets: avs.operator_set_count || avs.operator_sets || 0,
+    status: avs.current_status || avs.status || "unknown",
+    days_registered: avs.total_days_registered || avs.days_registered || 0,
+    operator_sets:
+      avs.active_operator_set_count ||
+      avs.operator_set_count ||
+      avs.operator_sets ||
+      0,
     allocated_usd: avs.total_allocated_usd
       ? formatUSD(avs.total_allocated_usd)
       : "—",
@@ -109,7 +107,9 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
       ? `${avs.effective_commission_pct}%`
       : avs.effective_commission_bips
         ? `${(avs.effective_commission_bips / 100).toFixed(2)}%`
-        : avs.commissions || "—",
+        : avs.avs_commission_bips
+          ? `${(avs.avs_commission_bips / 100).toFixed(2)}%`
+          : avs.commissions || "—",
   }));
 
   const DUMMY_AVS_LIST = Array.from({ length: 6 }).map((_, i) => ({
@@ -136,16 +136,16 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total AVSs"
-          value={avsList.length}
+          value={totalAvs}
           icon={<Shield className="h-5 w-5" />}
           tooltip={EDUCATIONAL_TOOLTIPS.avs.detailed}
         />
         <StatCard
           title="Active Registrations"
-          value={registeredCount}
+          value={activeAvs}
           subtitle={
-            avsList.length > 0
-              ? `${((registeredCount / avsList.length) * 100).toFixed(0)}% active`
+            totalAvs > 0
+              ? `${((activeAvs / totalAvs) * 100).toFixed(0)}% active`
               : undefined
           }
           icon={<CheckCircle2 className="h-5 w-5" />}
@@ -243,14 +243,14 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
                   variant="outline"
                   className="text-green-500 bg-green-500/10"
                 >
-                  {registeredCount} Active
+                  {activeAvs} Active
                 </Badge>
-                {avsList.length - registeredCount > 0 && (
+                {totalAvs - activeAvs > 0 && (
                   <Badge
                     variant="outline"
                     className="text-yellow-500 bg-yellow-500/10"
                   >
-                    {avsList.length - registeredCount} Inactive
+                    {totalAvs - activeAvs} Inactive
                   </Badge>
                 )}
               </div>

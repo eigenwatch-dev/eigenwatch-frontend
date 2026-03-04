@@ -1,30 +1,51 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 import { Wallet } from "lucide-react";
 import useAuthStore from "@/hooks/store/useAuthStore";
 
-export default function ConnectPage() {
+export const dynamic = "force-dynamic";
+
+function ConnectPageContent() {
   const { isAuthenticated, isRestoring, openAuthModal } = useAuthStore();
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const redirect = searchParams.get("redirect") || "/operator";
+  // Sanitize redirect URL to prevent loops
+  let targetRedirect = searchParams.get("redirect") || "/operator";
+  if (targetRedirect.startsWith("/connect")) {
+    targetRedirect = "/operator";
+  }
 
-  // Redirect to the target page once authenticated
+  const { isConnected } = useAccount();
+
+  // Redirect to the target page if wallet is already connected
+  // AuthProvider will pick up the "connected but unauthenticated" state and show the modal on the destination page
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(redirect);
+    if (isConnected) {
+      router.replace(targetRedirect);
     }
-  }, [isAuthenticated, redirect, router]);
+  }, [isConnected, targetRedirect, router]);
+
+  // Redirect to the target page once fully authenticated
+  useEffect(() => {
+    // Robust check: only redirect if authenticated AND we have an access token cookie
+    // This prevents loops where the store is out of sync with the server
+    const hasCookie = document.cookie.includes("access_token=");
+
+    if (isAuthenticated && hasCookie) {
+      router.replace(targetRedirect);
+    }
+  }, [isAuthenticated, targetRedirect, router]);
 
   // Auto-open the auth modal once restore attempt completes
   useEffect(() => {
-    if (!isRestoring && !isAuthenticated) {
+    if (!isRestoring && !isAuthenticated && !isConnected) {
       openAuthModal("connect");
     }
-  }, [isRestoring, isAuthenticated, openAuthModal]);
+  }, [isRestoring, isAuthenticated, isConnected, openAuthModal]);
 
   if (isRestoring) {
     return (
@@ -54,5 +75,19 @@ export default function ConnectPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function ConnectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-full min-h-[60vh] flex items-center justify-center py-[45px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      }
+    >
+      <ConnectPageContent />
+    </Suspense>
   );
 }

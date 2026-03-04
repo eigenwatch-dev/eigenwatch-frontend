@@ -11,11 +11,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
   const router = useRouter();
   const pathname = usePathname();
-  const {
-    isAuthenticated,
-    openAuthModal,
-    setRestoring,
-  } = useAuthStore();
+  const { isAuthenticated, openAuthModal, setRestoring } = useAuthStore();
 
   const hasAttemptedRefresh = useRef(false);
   const previousAddress = useRef<string | undefined>(undefined);
@@ -57,11 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // doRefresh already called setAccessToken and setUser
       })
       .catch(() => {
-        // No existing session — redirect to connect page
-        if (pathname !== "/connect") {
-          router.replace("/connect");
-        } else {
-          openAuthModal("connect");
+        // No existing session
+        if (isConnected && address) {
+          // Wallet is connected but no session found -> open sign modal on the CURRENT page
+          openAuthModal("sign");
+        } else if (pathname !== "/connect") {
+          // No wallet + no session -> redirect to connect page
+          const params = new URLSearchParams();
+          params.set("redirect", pathname + window.location.search);
+          router.replace(`/connect?${params.toString()}`);
         }
       })
       .finally(() => {

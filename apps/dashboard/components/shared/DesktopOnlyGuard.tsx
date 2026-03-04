@@ -23,7 +23,13 @@ export const DesktopOnlyGuard = ({ children }: DesktopOnlyGuardProps) => {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  if (!isReady) return null;
+  if (!isReady) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#09090B]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (

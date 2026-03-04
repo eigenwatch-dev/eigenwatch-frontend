@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import {
   Copy,
   ExternalLink,
   CheckCircle2,
+  ChevronLeft,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOperator, useOperatorStats } from "@/hooks/crud/useOperator";
@@ -212,6 +214,17 @@ const OperatorProfile = ({
 
   return (
     <div className="h-full py-[45px] space-y-4">
+      {/* Back Button */}
+      <div className="pb-2">
+        <Link
+          href="/operator"
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Operators
+        </Link>
+      </div>
+
       {/* Header Section */}
       <div className="space-y-4 pb-2">
         <div className="flex items-start justify-between flex-wrap gap-4">

@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import AppProvider from "./Provider";
@@ -108,7 +109,15 @@ export default async function RootLayout({
                   <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
                     <EmailNudgeBanner />
                     <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
-                      {children}
+                      <React.Suspense
+                        fallback={
+                          <div className="flex-1 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                          </div>
+                        }
+                      >
+                        {children}
+                      </React.Suspense>
                     </div>
                   </div>
                 </div>

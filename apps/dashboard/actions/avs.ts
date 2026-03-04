@@ -7,6 +7,8 @@ import {
   AVS,
   AVSDetail,
   AVSRegistrationHistory,
+  AVSListResponse,
+  AVSRelationship,
 } from "@/types/avs.types";
 import { AVSTimelineParams, AVSTimeline } from "@/types/daily_snapshots.types";
 
@@ -16,7 +18,7 @@ export const getOperatorAVS = async (id: string, params?: AVSListParams) => {
   const queryString = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
-  return handleApiAction<{ avs_relationships: AVS[]; pagination?: { total: number; limit: number; offset: number; has_more: boolean } }>({
+  return handleApiAction<AVSListResponse>({
     endpoint: `/api/v1/operators/${id}/avs${queryString}`,
     method: "get",
   });
@@ -30,7 +32,7 @@ export const getOperatorAVSDetail = async (operatorId: string, avsId: string) =>
 
 export const getAVSRegistrationHistory = async (
   operatorId: string,
-  avsId: string
+  avsId: string,
 ) =>
   handleApiAction<AVSRegistrationHistory>({
     endpoint: `/api/v1/operators/${operatorId}/avs/${avsId}/history`,
@@ -40,7 +42,7 @@ export const getAVSRegistrationHistory = async (
 export const getAVSRelationshipTimeline = async (
   operatorId: string,
   avsId: string,
-  params: AVSTimelineParams
+  params: AVSTimelineParams,
 ) => {
   const queryString = `?${new URLSearchParams(params as any).toString()}`;
   return handleApiAction<AVSTimeline>({

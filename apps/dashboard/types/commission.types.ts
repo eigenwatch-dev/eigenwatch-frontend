@@ -17,8 +17,14 @@ export interface BehaviorProfile {
   is_change_pending: boolean;
 }
 
+export interface PICommission {
+  current_bips: number;
+  activated_at: string;
+  total_changes: number;
+}
+
 export interface CommissionOverview {
-  pi_commission: number | null;
+  pi_commission: PICommission | null;
   avs_commissions: CommissionByAVS[];
   operator_set_commissions: CommissionByOperatorSet[];
   network_benchmarks?: NetworkCommissionBenchmarks;

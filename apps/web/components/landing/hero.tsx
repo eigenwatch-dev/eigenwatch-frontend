@@ -122,7 +122,7 @@ const Hero = ({ stats }: HeroProps) => {
             Risk Intelligence for
           </h1>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl py-1 sm:py-2 text-transparent font-medium tracking-tight leading-[1.1] sm:leading-[1.15] mb-6 bg-linear-to-b from-[#ffffff] via-[#F4F4F5] to-[#9F9FA9] bg-clip-text font-outfit">
-            EigenLayer Operators
+            Ethereum Restaking Ecosystem
           </h1>
           <p className="text-base sm:text-lg text-[#9F9FA9] max-w-2xl mx-auto mb-8 sm:mb-10 px-2">
             Monitor operator performance, track risk metrics, and make informed
