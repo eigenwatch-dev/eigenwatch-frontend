@@ -33,37 +33,85 @@ export function ConnectWalletDialog({
     string | null
   >(null);
 
-  const handleConnect = (connectorId: string, connector: any) => {
-    setPendingConnectorId(connectorId);
+  const handleConnect = (connector: any) => {
+    if (connector.isVirtual && connector.name === "MetaMask") {
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
     connect({ connector });
-  };
-
-  // Prioritized wallets
-  const prioritizedConnectors = ["MetaMask", "WalletConnect"];
-
-  // Filter and sort connectors based on name
-  const filteredConnectors = connectors
-    .filter((c) => prioritizedConnectors.some((p) => c.name.includes(p)))
-    .sort((a, b) => {
-      const indexA = prioritizedConnectors.findIndex((p) => a.name.includes(p));
-      const indexB = prioritizedConnectors.findIndex((p) => b.name.includes(p));
-      return indexA - indexB;
-    });
-
-  // Deduplicate by name
-  const uniqueConnectors = Array.from(
-    new Map(filteredConnectors.map((c) => [c.name, c])).values(),
-  );
-
-  const getIcon = (name: string) => {
-    if (name.includes("MetaMask")) return WALLET_ICONS.MetaMask;
-    if (name.includes("WalletConnect")) return WALLET_ICONS.WalletConnect;
-    return null;
   };
 
   // Improved check for MetaMask installed
   const isMetaMaskInstalled =
     typeof window !== "undefined" && !!(window as any).ethereum?.isMetaMask;
+
+  // Sort and deduplicate connectors
+  const sortedConnectors = [...connectors].sort((a, b) => {
+    // 1. Identify "injected" or similar that are "Installed"
+    const isAInstalled = (a as any).name.toLowerCase().includes("metamask")
+      ? isMetaMaskInstalled
+      : !a.isVirtual && !a.name.includes("Wave");
+    const isBInstalled = (b as any).name.toLowerCase().includes("metamask")
+      ? isMetaMaskInstalled
+      : !b.isVirtual && !b.name.includes("Wave");
+
+    const isAWalletConnect = a.name.includes("WalletConnect");
+    const isBWalletConnect = b.name.includes("WalletConnect");
+
+    // 2. Sorting rules:
+    // a. Installed wallets (not WC) go to the very top.
+    // b. WalletConnect goes after installed.
+    // c. Rest (virtual/uninstalled) go to the bottom.
+
+    if (
+      isAInstalled &&
+      !isAWalletConnect &&
+      (!isBInstalled || isBWalletConnect)
+    )
+      return -1;
+    if (
+      isBInstalled &&
+      !isBWalletConnect &&
+      (!isAInstalled || isAWalletConnect)
+    )
+      return 1;
+
+    if (isAWalletConnect && !isBWalletConnect) {
+      if (isBInstalled) return 1;
+      return -1;
+    }
+    if (isBWalletConnect && !isAWalletConnect) {
+      if (isAInstalled) return -1;
+      return 1;
+    }
+
+    return 0;
+  });
+
+  // Deduplicate by name to avoid showing multiple "Injected" or similar
+  const deduplicatedConnectors = Array.from(
+    new Map(
+      sortedConnectors
+        .filter((c) => c.name !== "Injected")
+        .map((c) => [c.name, c]),
+    ).values(),
+  );
+
+  const displayConnectors = deduplicatedConnectors;
+
+  const getIcon = (connector: any) => {
+    if (connector.icon) {
+      return (
+        <img src={connector.icon} alt={connector.name} className="w-6 h-6" />
+      );
+    }
+    if (connector.name.includes("MetaMask")) return WALLET_ICONS.MetaMask;
+    if (connector.name.includes("WalletConnect"))
+      return WALLET_ICONS.WalletConnect;
+    return (
+      <WalletMetamask variant="branded" size={24} className="opacity-50" />
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,31 +123,42 @@ export function ConnectWalletDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 pt-2 flex flex-col gap-3">
-          {uniqueConnectors.length > 0 ? (
-            uniqueConnectors.map((connector) => {
-              const isMetaMask = connector.name.includes("MetaMask");
-              const isInstalled = isMetaMask && isMetaMaskInstalled;
+        <div className="p-6 pt-2 flex flex-col gap-3 max-h-[320px] overflow-y-auto custom-scrollbar">
+          {displayConnectors.length > 0 ? (
+            displayConnectors.map((connector: any) => {
+              const isMetaMask = connector.name
+                .toLowerCase()
+                .includes("metamask");
+              const isInstalled =
+                (isMetaMask && isMetaMaskInstalled) ||
+                (!isMetaMask &&
+                  !connector.isVirtual &&
+                  !connector.name.includes("Wave")); // Simplified logic for other injected
 
               return (
                 <button
                   key={connector.uid}
-                  disabled={status === "pending"}
-                  onClick={() => handleConnect(connector.uid, connector)}
+                  disabled={status === "pending" && !connector.isVirtual}
+                  onClick={() => handleConnect(connector)}
                   className="flex items-center justify-between w-full p-4 rounded-lg bg-[#18181B] border border-white/5 hover:border-white/10 hover:bg-[#27272A] transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                      {getIcon(connector.name)}
+                      {getIcon(connector)}
                     </div>
                     <span className="font-medium text-white">
-                      {isMetaMask ? "MetaMask" : connector.name}
+                      {connector.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {isInstalled && (
+                    {isInstalled && !connector.isVirtual && (
                       <span className="text-[10px] uppercase tracking-wider font-semibold text-[#A1A1AA] bg-white/5 px-1.5 py-0.5 rounded">
                         Installed
+                      </span>
+                    )}
+                    {connector.isVirtual && isMetaMask && (
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
+                        Install
                       </span>
                     )}
                     {status === "pending" &&
