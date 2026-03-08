@@ -10,6 +10,7 @@ import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { DonutChart } from "@/components/shared/charts/DonutChart";
 import { ProGate } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
+import { InlineFeedback } from "@/components/feedback";
 
 import {
   useOperatorStats,
@@ -407,6 +408,8 @@ const StrategiesTab = ({ operatorId }: StrategiesTabProps) => {
           />
         </SectionContainer>
       </ProGate>
+
+      <InlineFeedback sectionId="strategies" />
     </div>
   );
 };

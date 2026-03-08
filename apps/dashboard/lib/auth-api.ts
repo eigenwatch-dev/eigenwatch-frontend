@@ -421,3 +421,32 @@ export async function verifyFlutterwave(transactionId: string): Promise<{
     message: string;
   }>(res);
 }
+
+// ==================== FEEDBACK ====================
+
+export type FeedbackType =
+  | "GENERAL"
+  | "INLINE"
+  | "PAYWALL"
+  | "FEATURE_REQUEST";
+export type FeedbackSentiment = "POSITIVE" | "NEGATIVE";
+
+export interface SubmitFeedbackPayload {
+  type: FeedbackType;
+  sentiment?: FeedbackSentiment;
+  category?: string;
+  message?: string;
+  page_url?: string;
+  section_id?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export async function submitFeedback(
+  payload: SubmitFeedbackPayload,
+): Promise<{ id: string }> {
+  const res = await authFetch(`${BASE_URL}/api/v1/feedback`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<{ id: string }>(res);
+}

@@ -83,6 +83,7 @@ export const metadata: Metadata = {
 
 import { DesktopOnlyGuard } from "@/components/shared/DesktopOnlyGuard";
 import Clarity from "@/components/shared/Clarity";
+import { FeedbackFAB } from "@/components/feedback";
 
 export default async function RootLayout({
   children,
@@ -121,6 +122,7 @@ export default async function RootLayout({
                     </div>
                   </div>
                 </div>
+                <FeedbackFAB />
               </DesktopOnlyGuard>
             </AuthProvider>
           </AppProvider>

@@ -13,6 +13,7 @@ import { ProGate } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
 import { EDUCATIONAL_TOOLTIPS } from "@/lib/educational-content";
 import { formatUSD } from "@/lib/formatting";
+import { InlineFeedback } from "@/components/feedback";
 import { useOperatorAVS } from "@/hooks/crud/useAvs";
 
 interface AVSTabProps {
@@ -258,6 +259,8 @@ export const AVSTab = ({ operatorId }: AVSTabProps) => {
           </div>
         )}
       </ProGate>
+
+      <InlineFeedback sectionId="avs-relationships" />
 
       {/* Educational Note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">

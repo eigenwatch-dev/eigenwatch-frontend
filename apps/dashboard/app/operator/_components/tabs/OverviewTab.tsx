@@ -12,6 +12,7 @@ import { useProAccess } from "@/hooks/useProAccess";
 import { useDailySnapshots } from "@/hooks/crud/useOperator";
 import { OperatorDetail } from "@/types/operator.types";
 import { SectionContainer } from "@/components/shared/data/SectionContainer";
+import { InlineFeedback } from "@/components/feedback";
 import { MetricProgress } from "@/components/shared/data/MetricProgress";
 import { ActivityItem } from "@/components/shared/data/ActivityItem";
 import { AreaChart } from "@/components/shared/charts/AreaChart";
@@ -377,6 +378,8 @@ const OverviewTab = ({ operator }: OverviewTabProps) => {
           )}
         </div>
       )}
+
+      <InlineFeedback sectionId="operator-overview" />
 
       {/* Educational note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">

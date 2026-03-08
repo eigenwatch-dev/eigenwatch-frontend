@@ -11,6 +11,7 @@ import { DelegationStabilityMetrics } from "./risk/DelegationStabilityMetrics";
 import { DelegationDistributionAnalysis } from "./risk/DelegationDistributionAnalysis";
 import { AdvancedMetrics } from "./risk/AdvancedMetrics";
 import { formatDate } from "./risk/utils";
+import { InlineFeedback } from "@/components/feedback";
 
 interface RiskAnalysisTabProps {
   operatorId: string;
@@ -91,6 +92,8 @@ export const RiskAnalysisTab = ({
 
           {/* Advanced Data Accordion */}
           <AdvancedMetrics risk={risk} />
+
+          <InlineFeedback sectionId="risk-analysis" />
         </>
       )}
     </div>
