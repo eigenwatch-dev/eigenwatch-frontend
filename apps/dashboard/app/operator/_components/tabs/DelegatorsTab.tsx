@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatAddress, formatUSD } from "@/lib/formatting";
 import { useOperatorDelegators } from "@/hooks/crud/useDelegators";
 import { useOperatorStats } from "@/hooks/crud/useOperator";
+import { InlineFeedback } from "@/components/feedback";
 
 // components/operator/tabs/DelegatorsTab.tsx
 interface DelegatorsTabProps {
@@ -133,6 +134,8 @@ export const DelegatorsTab = ({ operatorId }: DelegatorsTabProps) => {
           />
         </SectionContainer>
       </ProGate>
+
+      <InlineFeedback sectionId="delegators" />
     </div>
   );
 };

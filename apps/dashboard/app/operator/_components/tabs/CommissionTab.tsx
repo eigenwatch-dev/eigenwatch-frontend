@@ -7,6 +7,7 @@ import { StatCard } from "@/components/shared/data/StatCard";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { ProGate } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
+import { InlineFeedback } from "@/components/feedback";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -299,6 +300,8 @@ export const CommissionTab = ({ operatorId }: CommissionTabProps) => {
           )}
         </SectionContainer>
       </ProGate>
+
+      <InlineFeedback sectionId="commission" />
 
       {/* Educational Note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">

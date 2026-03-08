@@ -22,6 +22,7 @@ import {
 import { verifyPayment } from "@/lib/auth-api";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { useRouter } from "next/navigation";
+import { UpgradeAbandonmentFeedback } from "@/components/feedback";
 
 // Configuration
 const ADMIN_ADDRESS = (process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS ||
@@ -68,6 +69,13 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
   const [selectedToken, setSelectedToken] = useState<TokenType>("USDC");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showAbandonmentFeedback, setShowAbandonmentFeedback] = useState(false);
+
+  const handleClose = () => {
+    onClose();
+    // Show abandonment feedback after a short delay
+    setTimeout(() => setShowAbandonmentFeedback(true), 300);
+  };
 
   const emailVerified =
     user?.email_verified || user?.emails?.some((e) => e.is_verified);
@@ -161,9 +169,15 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     });
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) return (
+    <UpgradeAbandonmentFeedback
+      open={showAbandonmentFeedback}
+      onOpenChange={setShowAbandonmentFeedback}
+    />
+  );
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 animate-in fade-in duration-200">
       <div className="bg-card border border-border rounded-xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in duration-200">
         {/* Header - Fixed */}
@@ -172,7 +186,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             Upgrade to Pro
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
           >
             ✕
@@ -369,5 +383,6 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }

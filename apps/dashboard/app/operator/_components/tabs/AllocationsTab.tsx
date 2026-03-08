@@ -9,6 +9,7 @@ import { RiskIndicators } from "@/components/shared/data/RiskIndicators";
 import ReusableTable from "@/components/shared/table/ReuseableTable";
 import { ProGate } from "@/components/shared/ProGate";
 import { useProAccess } from "@/hooks/useProAccess";
+import { InlineFeedback } from "@/components/feedback";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -314,6 +315,8 @@ export const AllocationsTab = ({ operatorId }: AllocationsTabProps) => {
           <RiskIndicators metrics={allocations.risk_metrics} />
         )}
       </ProGate>
+
+      <InlineFeedback sectionId="allocations" />
 
       {/* Educational Note */}
       <div className="p-4 rounded-lg bg-muted/50 border border-border">

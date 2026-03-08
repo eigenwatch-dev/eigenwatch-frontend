@@ -30,7 +30,7 @@ import { RiskBadge } from "@/components/shared/data/RiskBadge";
 import { StatCard } from "@/components/shared/data/StatCard";
 import { CardContainer } from "@/components/shared/data/CardContainer";
 import { InfoHeading } from "@/components/shared/data/InfoHeading";
-import { PaymentModal } from "@/components/shared/PaymentModal";
+import { FeatureComingSoonModal } from "@/components/shared/FeatureComingSoonModal";
 import { ProBadge } from "@/components/shared/ProGate";
 import { ProGateCell } from "@/components/shared/ProGateCell";
 import { useProAccess } from "@/hooks/useProAccess";
@@ -69,12 +69,9 @@ const OperatorProfile = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
 
-  // Modal state
+  // Coming soon modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState<{
-    name: string;
-    benefits: string;
-  }>({
+  const [comingSoonFeature, setComingSoonFeature] = useState({
     name: "",
     benefits: "",
   });
@@ -101,7 +98,8 @@ const OperatorProfile = ({
     }
   };
 
-  const handleFeatureClick = () => {
+  const handleFeatureClick = (name: string, benefits: string) => {
+    setComingSoonFeature({ name, benefits });
     setModalOpen(true);
   };
 
@@ -293,13 +291,13 @@ const OperatorProfile = ({
           </div>
 
           <div className="flex gap-2 ">
-            <Button size="sm" onClick={handleFeatureClick}>
+            <Button size="sm" onClick={() => handleFeatureClick("Operator Comparison", "Compare operators side-by-side across risk metrics, TVS, delegation counts, and performance history.")}>
               Compare
             </Button>
-            <Button size="sm" onClick={handleFeatureClick}>
+            <Button size="sm" onClick={() => handleFeatureClick("Watchlist", "Track operators, receive real-time alerts on risk changes, slashing events, and delegation shifts.")}>
               Watch
             </Button>
-            <Button size="sm" onClick={handleFeatureClick}>
+            <Button size="sm" onClick={() => handleFeatureClick("Delegation", "Delegate directly from the dashboard with risk-aware routing and optimal strategy selection.")}>
               Delegate
             </Button>
           </div>
@@ -482,7 +480,12 @@ const OperatorProfile = ({
         )}
       </Tabs>
 
-      <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <FeatureComingSoonModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        featureName={comingSoonFeature.name}
+        benefits={comingSoonFeature.benefits}
+      />
     </div>
   );
 };
