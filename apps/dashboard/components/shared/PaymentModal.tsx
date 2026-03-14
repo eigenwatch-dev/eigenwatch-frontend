@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -88,11 +89,14 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const [showAbandonmentFeedback, setShowAbandonmentFeedback] = useState(false);
 
   // Cross-chain state
-  const [crossChainStep, setCrossChainStep] = useState<CrossChainStep>("quotes");
+  const [crossChainStep, setCrossChainStep] =
+    useState<CrossChainStep>("quotes");
   const [quotes, setQuotes] = useState<ChainrailsQuote[]>([]);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
   const [quotesError, setQuotesError] = useState<string | null>(null);
-  const [selectedQuote, setSelectedQuote] = useState<ChainrailsQuote | null>(null);
+  const [selectedQuote, setSelectedQuote] = useState<ChainrailsQuote | null>(
+    null,
+  );
   const [intent, setIntent] = useState<ChainrailsIntent | null>(null);
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -113,6 +117,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       setQuotesError(null);
       stopPolling();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const emailVerified =
@@ -161,7 +166,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     if (isTxConfirmed && hash && !isVerifying) {
       handleVerifyPayment(hash);
     }
-  }, [isTxConfirmed, hash]);
+  }, [isTxConfirmed, hash, isVerifying]);
 
   const handleVerifyPayment = async (txHash: string) => {
     setIsVerifying(true);
@@ -305,19 +310,20 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
           {/* Header */}
           <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              {paymentMethod === "crosschain" && crossChainStep !== "quotes" && (
-                <button
-                  onClick={() => {
-                    stopPolling();
-                    setCrossChainStep("quotes");
-                    setIntent(null);
-                    setSelectedQuote(null);
-                  }}
-                  className="p-1 text-muted-foreground hover:text-foreground rounded-md transition-colors"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-              )}
+              {paymentMethod === "crosschain" &&
+                crossChainStep !== "quotes" && (
+                  <button
+                    onClick={() => {
+                      stopPolling();
+                      setCrossChainStep("quotes");
+                      setIntent(null);
+                      setSelectedQuote(null);
+                    }}
+                    className="p-1 text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                )}
               <h2 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 Upgrade to Pro
               </h2>
@@ -493,11 +499,17 @@ function BasePaymentContent({
 
       <div className="grid grid-cols-1 gap-2.5">
         {[
-          { name: "USD Coin", symbol: "USDC" as TokenType, balance: usdcBalance },
+          {
+            name: "USD Coin",
+            symbol: "USDC" as TokenType,
+            balance: usdcBalance,
+          },
           { name: "Tether", symbol: "USDT" as TokenType, balance: usdtBalance },
         ].map((token) => {
           const balanceVal =
-            token.balance !== undefined ? BigInt(token.balance as any) : undefined;
+            token.balance !== undefined
+              ? BigInt(token.balance as any)
+              : undefined;
           const isInsufficient =
             balanceVal !== undefined && balanceVal < proPriceUnits;
 
@@ -651,7 +663,7 @@ function CrossChainContent({
   onSelectQuote,
   onRetryQuotes,
   onCopy,
-  onStartPolling,
+  // onStartPolling,
 }: {
   step: CrossChainStep;
   quotes: ChainrailsQuote[];
@@ -703,9 +715,7 @@ function CrossChainContent({
                   className="relative flex items-center justify-between p-4 rounded-lg border border-border bg-background hover:border-blue-500/50 hover:bg-secondary transition-all disabled:opacity-50"
                 >
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`p-2.5 rounded-md ${chain.bgColor}`}
-                    >
+                    <div className={`p-2.5 rounded-md ${chain.bgColor}`}>
                       <ArrowLeftRight
                         className="h-4 w-4"
                         style={{ color: chain.color }}
