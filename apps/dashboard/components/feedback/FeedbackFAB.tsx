@@ -11,7 +11,7 @@ export function FeedbackFAB() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 transition-all duration-200 hover:border-purple-500/30 hover:bg-purple-500/5"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 transition-all duration-200 hover:border-purple-500/30 hover:bg-purple-500/5"
         aria-label="Share feedback"
       >
         <MessageSquarePlus className="size-4 text-purple-500 shrink-0" />

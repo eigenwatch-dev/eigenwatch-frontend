@@ -51,10 +51,10 @@ export function EmailNudgeBanner() {
 
   return (
     <div className="w-full bg-blue-500/10 border-b border-blue-500/20">
-      <div className="max-w-[1440px] mx-auto px-[108px] pt-6 pb-2.5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 text-sm">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-[108px] pt-6 pb-2.5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 text-sm flex-wrap min-w-0">
           <Mail className="h-4 w-4 text-blue-500 shrink-0" />
-          <span className="text-muted-foreground">
+          <span className="text-muted-foreground text-xs sm:text-sm">
             Add your email to receive risk alerts and updates.
           </span>
           <Button

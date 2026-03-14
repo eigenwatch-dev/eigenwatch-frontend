@@ -51,7 +51,7 @@ export const RiskAnalysisTab = ({
   return (
     <div className="space-y-4">
       {/* Assessment Date Badge */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>Assessment Date: {formatDate(risk.assessment_date)}</span>

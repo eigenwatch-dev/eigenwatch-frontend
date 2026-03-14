@@ -178,11 +178,11 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
   return (
     <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 animate-in fade-in duration-200">
-      <div className="bg-card border border-border rounded-xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-background/90 animate-in fade-in duration-200">
+      <div className="bg-card border border-border rounded-t-xl sm:rounded-xl w-full sm:max-w-md shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-4 sm:zoom-in duration-200">
         {/* Header - Fixed */}
-        <div className="p-6 border-b border-border flex items-center justify-between shrink-0">
-          <h2 className="text-xl font-semibold text-foreground tracking-tight">
+        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between shrink-0">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
             Upgrade to Pro
           </h2>
           <button
@@ -194,19 +194,19 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-4 text-sm text-blue-500">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+          <div className="p-3 sm:p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-3 text-sm text-blue-500">
             <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
+            <p className="leading-relaxed text-xs sm:text-sm">
               Unlock advanced risk metrics, detailed strategy insights, and
               priority access by upgrading to PRO.
             </p>
           </div>
 
           {!emailVerified && (
-            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex gap-4 text-sm text-yellow-500">
+            <div className="p-3 sm:p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex gap-3 text-sm text-yellow-500">
               <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-xs sm:text-sm">
                 Email verification is required to upgrade. Please verify your
                 email to continue.
               </p>
@@ -292,7 +292,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             </div>
           </div>
 
-          <div className="space-y-4 pt-6 border-t border-border">
+          <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-border">
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">Plan Duration</span>
               <span className="font-semibold text-foreground">30 Days</span>
@@ -313,7 +313,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         </div>
 
         {/* Footer Actions - Fixed */}
-        <div className="p-6 border-t border-border shrink-0">
+        <div className="p-4 sm:p-6 border-t border-border shrink-0">
           <div className="space-y-3">
             {!emailVerified ? (
               <button

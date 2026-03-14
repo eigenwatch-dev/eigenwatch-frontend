@@ -28,7 +28,7 @@ export const AdvancedMetrics = ({ risk }: { risk: OperatorRiskProfile }) => {
                 System Flags
               </h4>
               <Separator className="mb-4" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <span className="text-sm text-muted-foreground">Active Status</span>
                   <Badge variant={risk.flags.is_active ? 'default' : 'secondary'}>
@@ -50,7 +50,7 @@ export const AdvancedMetrics = ({ risk }: { risk: OperatorRiskProfile }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* All Concentration Metrics */}
               <div className="space-y-6">
                 <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
@@ -270,9 +270,9 @@ export const AdvancedMetrics = ({ risk }: { risk: OperatorRiskProfile }) => {
                 Raw Delegation Metrics
               </h4>
               <Separator className="mb-4" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DataRow 
-                  label="HHI (Raw)" 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <DataRow
+                  label="HHI (Raw)"
                   value={risk.metrics.delegation.hhi.toFixed(8)}
                   tooltip="Raw Herfindahl-Hirschman Index value"
                 />

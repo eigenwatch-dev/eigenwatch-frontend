@@ -171,46 +171,62 @@ const ReusableTable = ({
       {isMaxMd ? (
         <>
           {/* Mobile Table */}
-          <div className="flex flex-col gap-[24px]">
-            {mobileCards.map((mobileCard, index) => {
-              return (
-                <div key={index} className="flex flex-col gap-[24px]">
-                  {/* mobile card */}
-                  <div
-                    className="flex flex-col gap-[13px] relative cursor-pointer hover:bg-muted/50 p-4 rounded-lg transition-colors"
-                    onClick={() => handleRowClick(mobileCard.raw)}
-                  >
-                    {/* Row fields */}
-                    {mobileCard.fields.map((field, idx) => (
-                      <div className="flex w-full justify-between" key={idx}>
-                        <BodySix className="text-muted-foreground font-[500]">
-                          {field.label}
-                        </BodySix>
-                        <BodySix className="text-foreground">
-                          {field.value}
-                        </BodySix>
-                      </div>
-                    ))}
-                  </div>
+          <div className="flex flex-col gap-3 border border-border rounded-[14px] overflow-hidden">
+            {currentTab.paginationProps?.isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <ClipLoader size={30} color="var(--primary)" />
+              </div>
+            ) : (
+              mobileCards.map((mobileCard, index) => {
+                return (
+                  <div key={index} className="flex flex-col">
+                    {/* mobile card */}
+                    <div
+                      className="flex flex-col gap-[10px] relative cursor-pointer hover:bg-muted/50 px-4 py-3 transition-colors"
+                      onClick={() => handleRowClick(mobileCard.raw)}
+                    >
+                      {/* Row fields */}
+                      {mobileCard.fields.map((field, idx) => (
+                        <div className="flex w-full justify-between items-start gap-3" key={idx}>
+                          <BodySix className="text-muted-foreground font-[500] shrink-0">
+                            {field.label}
+                          </BodySix>
+                          <div className="text-foreground text-right text-sm">
+                            {field.value}
+                          </div>
+                        </div>
+                      ))}
+                      {currentTab.onRowClick && (
+                        <div className="flex justify-end">
+                          <ChevronRight className="text-muted-foreground" size={16} />
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Conditional separator */}
-                  {index < mobileCards.length - 1 && (
-                    <Separator color="#E8E9EA" />
-                  )}
-                </div>
-              );
-            })}
+                    {/* Conditional separator */}
+                    {index < mobileCards.length - 1 && (
+                      <Separator color="#E8E9EA" />
+                    )}
+                  </div>
+                );
+              })
+            )}
             {currentTab.tableFilters.addCta && (
-              <div className="flex justify-end mt-[10px] mb-[20px]">
+              <div className="flex justify-end px-4 pb-3">
                 <Button
                   onClick={currentTab.tableFilters.onCtaClick}
-                  className="flex items-center gap-[10px] rounded-[30px] px-[18px] py-[8px] bg-primary hover:bg-primary/90 relative top-[10px]"
+                  className="flex items-center gap-[10px] rounded-[30px] px-[18px] py-[8px] bg-primary hover:bg-primary/90"
                 >
                   {currentTab.tableFilters.ctaLogo}
                   <BodySix>
                     {currentTab.tableFilters.ctaLabel || "Create New"}
                   </BodySix>
                 </Button>
+              </div>
+            )}
+            {currentTab.paginationProps && (
+              <div className="px-3 bg-muted/70">
+                <Pagination {...currentTab.paginationProps} />
               </div>
             )}
           </div>

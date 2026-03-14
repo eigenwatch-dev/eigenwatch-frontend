@@ -101,16 +101,16 @@ const Pagination = ({
 
   return (
     <motion.div
-      className="flex items-center justify-between h-[48px] w-full bg-[#18181B4D] rounded-b-[4px] text-[#9F9FA9]"
+      className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:h-[48px] w-full bg-[#18181B4D] rounded-b-[4px] text-[#9F9FA9] py-2 sm:py-0 px-2 sm:px-0"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
       {/* Results info and records per page */}
-      <div className="flex items-center gap-4">
-        <div className="text-sm">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="text-xs sm:text-sm">
           <BodyOne className="font-[600]">
-            Showing {startItem} to {endItem} of {total} results
+            {startItem}-{endItem} of {total}
           </BodyOne>
         </div>
 
@@ -181,7 +181,7 @@ const Pagination = ({
           whileHover={{ scale: 1.05 }}
           onClick={() => skip5Pages("backward")}
           disabled={currentPage <= 5 || isLoading}
-          className="px-2 py-1 rounded disabled:opacity-50 transition-colors text-xs"
+          className="hidden sm:block px-2 py-1 rounded disabled:opacity-50 transition-colors text-xs"
           title="Skip 5 pages back"
         >
           -5
@@ -218,7 +218,7 @@ const Pagination = ({
         ))}
 
         {/* Page jump input */}
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <AnimatePresence>
             {showPageInput ? (
               <motion.form
@@ -277,7 +277,7 @@ const Pagination = ({
           whileHover={{ scale: 1.05 }}
           onClick={() => skip5Pages("forward")}
           disabled={currentPage >= totalPages - 4 || isLoading}
-          className="px-2 py-1 rounded disabled:opacity-50 transition-colors text-xs"
+          className="hidden sm:block px-2 py-1 rounded disabled:opacity-50 transition-colors text-xs"
           title="Skip 5 pages forward"
         >
           +5
