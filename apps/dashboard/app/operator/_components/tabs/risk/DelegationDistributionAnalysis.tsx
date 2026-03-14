@@ -27,7 +27,7 @@ export const DelegationDistributionAnalysis = ({ risk }: { risk: OperatorRiskPro
           color={parseFloat(risk.concentration.delegation.top_10_percentage || '0') > 70 ? 'bg-orange-500' : 'bg-blue-500'}
         />
         <Separator className="my-4" />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <DataRow 
             label="Total Entities" 
             value={risk.concentration.delegation.total_entities}

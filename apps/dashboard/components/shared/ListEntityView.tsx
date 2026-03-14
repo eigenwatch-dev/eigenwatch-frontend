@@ -29,11 +29,11 @@ export function ListEntityView({
   onSearchChange?: (value: string) => void;
 }) {
   return (
-    <div className="flex w-full flex-col pt-[48px] gap-[40px]">
-      <div className="flex flex-col gap-[40px]">
-        <h2 className="text-[48px] ">{entity}</h2>
+    <div className="flex w-full flex-col pt-6 sm:pt-[48px] gap-6 sm:gap-[40px]">
+      <div className="flex flex-col gap-4 sm:gap-[40px]">
+        <h2 className="text-2xl sm:text-4xl md:text-[48px]">{entity}</h2>
         <div className="flex justify-between">
-          <InputGroup className="max-w-[500px] my-auto bg-[#18181B80] border-[1.33px] border-[#27272A80] py-[4px] h-[48px] gap-[8px] px-[8px]">
+          <InputGroup className="w-full sm:max-w-[500px] my-auto bg-[#18181B80] border-[1.33px] border-[#27272A80] py-[4px] h-[44px] sm:h-[48px] gap-[8px] px-[8px]">
             <InputGroupInput
               placeholder={searchPlaceholder || "Search..."}
               value={searchValue}
@@ -43,14 +43,6 @@ export function ListEntityView({
               <Search />
             </InputGroupAddon>
           </InputGroup>
-
-          {/* Commented out inactive toggle as requested */}
-          {/* <div className="flex items-center gap-[12px] border-[1.33px] border-[#27272A80] bg-[#18181B80] px-[16px] py-[12px] rounded-[10px]">
-            <Switch id="show-inactive" />
-            <Label htmlFor="show-inactive" className="text-[14px]">
-              Hide inactive {entity.toLowerCase()}
-            </Label>
-          </div> */}
         </div>
       </div>
       <div className="flex w-full">

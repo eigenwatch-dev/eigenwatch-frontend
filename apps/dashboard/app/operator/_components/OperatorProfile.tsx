@@ -20,6 +20,7 @@ import {
   ExternalLink,
   CheckCircle2,
   ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOperator, useOperatorStats } from "@/hooks/crud/useOperator";
@@ -35,6 +36,7 @@ import { ProBadge } from "@/components/shared/ProGate";
 import { ProGateCell } from "@/components/shared/ProGateCell";
 import { useProAccess } from "@/hooks/useProAccess";
 import { OperatorDetail, OperatorStats } from "@/types/operator.types";
+import { useBreakpoint } from "@/hooks/ui/useBreakpoints";
 
 // Lazy-loaded tab imports
 import OverviewTab from "./tabs/OverviewTab";
@@ -66,8 +68,10 @@ const OperatorProfile = ({
 }: OperatorProfileProps) => {
   const queryClient = useQueryClient();
   const { isFree } = useProAccess();
+  const { isMaxMd } = useBreakpoint();
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
+  const [tabDropdownOpen, setTabDropdownOpen] = useState(false);
 
   // Coming soon modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -156,7 +160,7 @@ const OperatorProfile = ({
 
   if (loadingOperator) {
     return (
-      <div className="min-h-screen py-[45px] space-y-8">
+      <div className="min-h-screen py-6 sm:py-[45px] space-y-8">
         <div className="space-y-4">
           <div className="flex items-start gap-4">
             <Skeleton className="h-20 w-20 rounded-xl" />
@@ -211,7 +215,7 @@ const OperatorProfile = ({
   }
 
   return (
-    <div className="h-full py-[45px] space-y-4">
+    <div className="h-full py-6 sm:py-[45px] space-y-4">
       {/* Back Button */}
       <div className="pb-2">
         <Link
@@ -226,17 +230,17 @@ const OperatorProfile = ({
       {/* Header Section */}
       <div className="space-y-4 pb-2">
         <div className="flex items-start justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20 rounded-lg mb-auto">
+          <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+            <Avatar className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg shrink-0">
               <AvatarImage src={operator.metadata?.logo} />
-              <AvatarFallback className="rounded-lg bg-primary/10 text-2xl font-[500]">
+              <AvatarFallback className="rounded-lg bg-primary/10 text-xl sm:text-2xl font-[500]">
                 {operator.metadata?.name?.[0] || "AO"}
               </AvatarFallback>
             </Avatar>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-bold">
+            <div className="space-y-2 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h1 className="text-xl sm:text-3xl font-bold break-words">
                   {operator.metadata?.name || "Anonymous Operator"}
                 </h1>
                 <Badge
@@ -259,8 +263,8 @@ const OperatorProfile = ({
 
               <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="font-mono text-xs rounded">
-                  {operator?.operator_address?.slice(0, 10)}...
-                  {operator?.operator_address?.slice(-8)}
+                  {operator?.operator_address?.slice(0, 6)}...
+                  {operator?.operator_address?.slice(-4)}
                 </span>
                 <button onClick={copyAddress}>
                   {copied ? (
@@ -283,21 +287,21 @@ const OperatorProfile = ({
               </div>
 
               {operator.metadata?.description && (
-                <p className="text-sm text-muted-foreground max-w-2xl">
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl line-clamp-3 sm:line-clamp-none">
                   {operator.metadata.description}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex gap-2 ">
-            <Button size="sm" onClick={() => handleFeatureClick("Operator Comparison", "Compare operators side-by-side across risk metrics, TVS, delegation counts, and performance history.")}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => handleFeatureClick("Operator Comparison", "Compare operators side-by-side across risk metrics, TVS, delegation counts, and performance history.")}>
               Compare
             </Button>
-            <Button size="sm" onClick={() => handleFeatureClick("Watchlist", "Track operators, receive real-time alerts on risk changes, slashing events, and delegation shifts.")}>
+            <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => handleFeatureClick("Watchlist", "Track operators, receive real-time alerts on risk changes, slashing events, and delegation shifts.")}>
               Watch
             </Button>
-            <Button size="sm" onClick={() => handleFeatureClick("Delegation", "Delegate directly from the dashboard with risk-aware routing and optimal strategy selection.")}>
+            <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => handleFeatureClick("Delegation", "Delegate directly from the dashboard with risk-aware routing and optimal strategy selection.")}>
               Delegate
             </Button>
           </div>
@@ -349,7 +353,7 @@ const OperatorProfile = ({
 
       {/* Risk & Commission Bar */}
       <CardContainer>
-        <div className="flex justify-between">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 sm:gap-6">
           <div className="space-y-2">
             <InfoHeading
               heading="Risk Assessment"
@@ -367,7 +371,7 @@ const OperatorProfile = ({
             </ProGateCell>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 sm:flex-1 sm:max-w-[250px]">
             <div className="flex items-center justify-between gap-2">
               <InfoHeading
                 heading="Commission Rate"
@@ -418,67 +422,122 @@ const OperatorProfile = ({
       </CardContainer>
 
       {/* Tabbed Content - Lazy loaded: only active tab renders */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-2"
-      >
-        <TabsList className="grid w-full grid-cols-7 bg-muted/50 text-foreground">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger
-            value="strategies"
-            onMouseEnter={() => handleTabHover("strategies")}
-          >
-            Strategies
-          </TabsTrigger>
-          <TabsTrigger value="avs" onMouseEnter={() => handleTabHover("avs")}>
-            AVS
-          </TabsTrigger>
-          <TabsTrigger
-            value="delegators"
-            onMouseEnter={() => handleTabHover("delegators")}
-          >
-            Delegators
-          </TabsTrigger>
-          <TabsTrigger
-            value="allocations"
-            onMouseEnter={() => handleTabHover("allocations")}
-          >
-            Allocations
-          </TabsTrigger>
-          <TabsTrigger
-            value="commission"
-            onMouseEnter={() => handleTabHover("commission")}
-          >
-            Commission
-          </TabsTrigger>
-          <TabsTrigger value="risk" onMouseEnter={() => handleTabHover("risk")}>
-            Risk Analysis <ProBadge />
-          </TabsTrigger>
-        </TabsList>
+      {isMaxMd ? (
+        /* Mobile: Dropdown tab selector */
+        <div className="space-y-3">
+          <div className="relative">
+            <button
+              onClick={() => setTabDropdownOpen(!tabDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-muted/50 border border-border text-foreground text-sm font-medium"
+            >
+              <span>
+                {[
+                  { value: "overview", label: "Overview" },
+                  { value: "strategies", label: "Strategies" },
+                  { value: "avs", label: "AVS" },
+                  { value: "delegators", label: "Delegators" },
+                  { value: "allocations", label: "Allocations" },
+                  { value: "commission", label: "Commission" },
+                  { value: "risk", label: "Risk Analysis" },
+                ].find((t) => t.value === activeTab)?.label}
+                {activeTab === "risk" && <ProBadge />}
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${tabDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+            {tabDropdownOpen && (
+              <div className="absolute z-20 mt-1 w-full rounded-lg bg-card border border-border shadow-lg overflow-hidden">
+                {[
+                  { value: "overview", label: "Overview" },
+                  { value: "strategies", label: "Strategies" },
+                  { value: "avs", label: "AVS" },
+                  { value: "delegators", label: "Delegators" },
+                  { value: "allocations", label: "Allocations" },
+                  { value: "commission", label: "Commission" },
+                  { value: "risk", label: "Risk Analysis" },
+                ].map((tab) => (
+                  <button
+                    key={tab.value}
+                    onClick={() => {
+                      setActiveTab(tab.value);
+                      setTabDropdownOpen(false);
+                      handleTabHover(tab.value);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      activeTab === tab.value
+                        ? "bg-muted text-foreground font-medium"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                    {tab.value === "risk" && <span className="ml-1"><ProBadge /></span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* Lazy tab rendering: only the active tab's component is mounted */}
-        {activeTab === "overview" && <OverviewTab operator={operator} />}
-        {activeTab === "strategies" && (
-          <StrategiesTab operatorId={operatorId} />
-        )}
-        {activeTab === "avs" && <AVSTab operatorId={operatorId} />}
-        {activeTab === "delegators" && (
-          <DelegatorsTab operatorId={operatorId} />
-        )}
-        {activeTab === "allocations" && (
-          <AllocationsTab operatorId={operatorId} />
-        )}
-        {activeTab === "commission" && (
-          <CommissionTab operatorId={operatorId} />
-        )}
-        {activeTab === "risk" && (
-          <RiskAnalysisTab
-            operatorId={operatorId}
-            operationalDays={operator.status.operational_days}
-          />
-        )}
-      </Tabs>
+          {activeTab === "overview" && <OverviewTab operator={operator} />}
+          {activeTab === "strategies" && <StrategiesTab operatorId={operatorId} />}
+          {activeTab === "avs" && <AVSTab operatorId={operatorId} />}
+          {activeTab === "delegators" && <DelegatorsTab operatorId={operatorId} />}
+          {activeTab === "allocations" && <AllocationsTab operatorId={operatorId} />}
+          {activeTab === "commission" && <CommissionTab operatorId={operatorId} />}
+          {activeTab === "risk" && (
+            <RiskAnalysisTab operatorId={operatorId} operationalDays={operator.status.operational_days} />
+          )}
+        </div>
+      ) : (
+        /* Desktop: Grid tabs */
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-2"
+        >
+          <TabsList className="grid w-full grid-cols-7 bg-muted/50 text-foreground">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger
+              value="strategies"
+              onMouseEnter={() => handleTabHover("strategies")}
+            >
+              Strategies
+            </TabsTrigger>
+            <TabsTrigger value="avs" onMouseEnter={() => handleTabHover("avs")}>
+              AVS
+            </TabsTrigger>
+            <TabsTrigger
+              value="delegators"
+              onMouseEnter={() => handleTabHover("delegators")}
+            >
+              Delegators
+            </TabsTrigger>
+            <TabsTrigger
+              value="allocations"
+              onMouseEnter={() => handleTabHover("allocations")}
+            >
+              Allocations
+            </TabsTrigger>
+            <TabsTrigger
+              value="commission"
+              onMouseEnter={() => handleTabHover("commission")}
+            >
+              Commission
+            </TabsTrigger>
+            <TabsTrigger value="risk" onMouseEnter={() => handleTabHover("risk")}>
+              Risk Analysis <ProBadge />
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "overview" && <OverviewTab operator={operator} />}
+          {activeTab === "strategies" && <StrategiesTab operatorId={operatorId} />}
+          {activeTab === "avs" && <AVSTab operatorId={operatorId} />}
+          {activeTab === "delegators" && <DelegatorsTab operatorId={operatorId} />}
+          {activeTab === "allocations" && <AllocationsTab operatorId={operatorId} />}
+          {activeTab === "commission" && <CommissionTab operatorId={operatorId} />}
+          {activeTab === "risk" && (
+            <RiskAnalysisTab operatorId={operatorId} operationalDays={operator.status.operational_days} />
+          )}
+        </Tabs>
+      )}
 
       <FeatureComingSoonModal
         isOpen={modalOpen}

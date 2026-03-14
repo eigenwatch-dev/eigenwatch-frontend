@@ -45,7 +45,6 @@ export function tableToCardData({
     const subtitle = subtitleKey ? row[subtitleKey] : undefined;
 
     const fields = columns
-      .filter((col) => col.key !== titleKey && col.key !== subtitleKey)
       .map((col) => ({
         label: col.displayName,
         value: row[col.key],

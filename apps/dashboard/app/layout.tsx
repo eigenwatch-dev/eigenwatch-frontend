@@ -81,7 +81,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { DesktopOnlyGuard } from "@/components/shared/DesktopOnlyGuard";
 import Clarity from "@/components/shared/Clarity";
 import { FeedbackFAB } from "@/components/feedback";
 
@@ -96,7 +95,6 @@ export default async function RootLayout({
         <WalletProvider>
           <AppProvider>
             <AuthProvider>
-              <DesktopOnlyGuard>
                 <div className="flex flex-col w-full h-screen">
                   <NavBar
                     logoHref={
@@ -109,7 +107,7 @@ export default async function RootLayout({
                   />
                   <div className="w-full flex flex-col h-full overflow-y-auto pt-[65px]">
                     <EmailNudgeBanner />
-                    <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-[108px]">
+                    <div className="max-w-[1440px] w-full mx-auto flex flex-col h-full px-4 sm:px-6 md:px-10 lg:px-[108px]">
                       <React.Suspense
                         fallback={
                           <div className="flex-1 flex items-center justify-center">
@@ -123,7 +121,6 @@ export default async function RootLayout({
                   </div>
                 </div>
                 <FeedbackFAB />
-              </DesktopOnlyGuard>
             </AuthProvider>
           </AppProvider>
         </WalletProvider>
