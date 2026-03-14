@@ -1,20 +1,44 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useRouter, usePathname } from "next/navigation";
 import useAuthStore from "@/hooks/store/useAuthStore";
 import { doRefresh, logout as apiLogout } from "@/lib/auth-api";
 import { AuthModal } from "./AuthModal";
+import { BetaPerkModal } from "@/components/beta/BetaPerkModal";
+import type { UnseenBetaPerk } from "@/types/auth.types";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, openAuthModal, setRestoring } = useAuthStore();
+  const { isAuthenticated, user, openAuthModal, setRestoring } = useAuthStore();
 
   const hasAttemptedRefresh = useRef(false);
   const previousAddress = useRef<string | undefined>(undefined);
+
+  // Beta perk modal state
+  const [betaPerkQueue, setBetaPerkQueue] = useState<UnseenBetaPerk[]>([]);
+  const [showBetaModal, setShowBetaModal] = useState(false);
+
+  // When user data changes, check for unseen beta perks
+  useEffect(() => {
+    if (user?.unseen_beta_perks && user.unseen_beta_perks.length > 0) {
+      setBetaPerkQueue(user.unseen_beta_perks);
+      setShowBetaModal(true);
+    }
+  }, [user?.unseen_beta_perks]);
+
+  const handleBetaPerkDismiss = useCallback(() => {
+    setBetaPerkQueue((prev) => {
+      const remaining = prev.slice(1);
+      if (remaining.length === 0) {
+        setShowBetaModal(false);
+      }
+      return remaining;
+    });
+  }, []);
 
   // Attempt silent auth on mount or when wallet connects
   useEffect(() => {
@@ -77,10 +101,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     pathname,
   ]);
 
+  const currentPerk = betaPerkQueue[0] ?? null;
+
   return (
     <>
       {children}
       <AuthModal />
+      <BetaPerkModal
+        perk={currentPerk}
+        open={showBetaModal && currentPerk !== null}
+        onDismiss={handleBetaPerkDismiss}
+      />
     </>
   );
 }

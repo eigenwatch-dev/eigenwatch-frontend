@@ -422,6 +422,84 @@ export async function verifyFlutterwave(transactionId: string): Promise<{
   }>(res);
 }
 
+// ==================== CHAINRAILS (Cross-Chain Payments) ====================
+
+export interface ChainrailsQuote {
+  source_chain: string;
+  tokenIn: string;
+  fees_in_usd: string;
+  total_amount_in_usd: string;
+  total_amount_in_asset_token: string;
+  asset_token_symbol: string;
+  asset_token_decimals: number;
+  [key: string]: unknown;
+}
+
+export interface ChainrailsIntent {
+  id: number;
+  intent_address: string;
+  source_chain: string;
+  destination_chain: string;
+  intent_status: string;
+  total_amount_in_asset_token: string;
+  asset_token_symbol: string;
+  asset_token_decimals: number;
+  expires_at: string;
+  [key: string]: unknown;
+}
+
+export async function getChainrailsQuotes(
+  amount: string,
+  destinationChain: string,
+  tokenOut: string,
+): Promise<ChainrailsQuote[]> {
+  const res = await authFetch(
+    `${BASE_URL}/api/v1/payments/chainrails/quote`,
+    {
+      method: "POST",
+      body: JSON.stringify({ amount, destinationChain, tokenOut }),
+    },
+  );
+  return handleResponse<ChainrailsQuote[]>(res);
+}
+
+export interface CreateChainrailsIntentPayload {
+  sender: string;
+  amount: string;
+  amountSymbol?: string;
+  tokenIn: string;
+  sourceChain: string;
+  destinationChain: string;
+  recipient: string;
+  refundAddress: string;
+  metadata?: Record<string, unknown>;
+}
+
+export async function createChainrailsIntent(
+  payload: CreateChainrailsIntentPayload,
+): Promise<ChainrailsIntent> {
+  const res = await authFetch(
+    `${BASE_URL}/api/v1/payments/chainrails/create-intent`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+  return handleResponse<ChainrailsIntent>(res);
+}
+
+// ==================== BETA ====================
+
+export async function markBetaPerkSeen(
+  perkId: string,
+): Promise<{ message: string }> {
+  const res = await authFetch(
+    `${BASE_URL}/api/v1/beta/perks/${perkId}/seen`,
+    { method: "POST" },
+  );
+  return handleResponse<{ message: string }>(res);
+}
+
 // ==================== FEEDBACK ====================
 
 export type FeedbackType =
