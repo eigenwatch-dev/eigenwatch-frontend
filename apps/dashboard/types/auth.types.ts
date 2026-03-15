@@ -2,6 +2,14 @@ export type UserTier = "FREE" | "PRO" | "ENTERPRISE";
 export type AuthTier = UserTier;
 export type AuthStep = "connect" | "sign" | "email" | "verify" | "complete";
 
+export interface UnseenBetaPerk {
+  id: string;
+  key: string;
+  description: string;
+  activated_at: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface User {
   id: string;
   wallet_address: string;
@@ -13,6 +21,9 @@ export interface User {
   preferences?: UserPreferences;
   created_at: string;
   tier_expires_at?: string;
+  beta_member?: boolean;
+  beta_discount?: number | null;
+  unseen_beta_perks?: UnseenBetaPerk[];
 }
 
 export interface UserEmail {

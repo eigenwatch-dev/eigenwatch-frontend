@@ -4,7 +4,7 @@ const net = require("net");
 
 const APPS = {
   web: 3000,
-  docs: 3001,
+  admin: 3003,
   dashboard: 3002,
 };
 
@@ -45,8 +45,8 @@ async function run() {
       message: "Select an application to run",
       choices: [
         { title: "Web (default port 3000)", value: "web" },
-        { title: "Docs (default port 3001)", value: "docs" },
         { title: "Dashboard (default port 3002)", value: "dashboard" },
+        { title: "Admin (default port 3003)", value: "admin" },
       ],
       initial: 0,
     });

@@ -360,75 +360,94 @@ export async function verifyPayment(txHash: string): Promise<{
   }>(res);
 }
 
-export async function initializePaystack(email: string): Promise<{
-  authorization_url: string;
-  reference: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/paystack/initialize`,
-    {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    },
-  );
-  return handleResponse<{ authorization_url: string; reference: string }>(res);
+// ==================== CHAINRAILS (Cross-Chain Payments) ====================
+
+export interface ChainrailsPaymentOption {
+  token: string;
+  tokenAddress: string;
+  depositAmount: string;
+  depositAmountFormatted: string;
+  fee: string;
+  feeFormatted: string;
+  slippage: number;
 }
 
-export async function verifyPaystack(reference: string): Promise<{
-  success: boolean;
-  tier: string;
-  message: string;
-}> {
-  const res = await authFetch(`${BASE_URL}/api/v1/payments/paystack/verify`, {
+export interface ChainrailsQuoteRaw {
+  sourceChain: string;
+  destinationChain: string;
+  totalFee: string;
+  totalFeeFormatted: string;
+  bridge?: string;
+  paymentOptions: ChainrailsPaymentOption[];
+}
+
+export interface ChainrailsQuoteResponse {
+  destinationChain: string;
+  quotes: ChainrailsQuoteRaw[];
+  cheapestOption?: ChainrailsQuoteRaw;
+}
+
+export interface ChainrailsIntent {
+  id: number;
+  intent_address: string;
+  source_chain: string;
+  destination_chain: string;
+  intent_status: string;
+  total_amount_in_asset_token: string;
+  asset_token_symbol: string;
+  asset_token_decimals: number;
+  expires_at: string;
+  [key: string]: unknown;
+}
+
+export async function getChainrailsQuotes(
+  amount: string,
+  destinationChain: string,
+  tokenOut: string,
+): Promise<ChainrailsQuoteResponse> {
+  const res = await authFetch(`${BASE_URL}/api/v1/payments/chainrails/quote`, {
     method: "POST",
-    body: JSON.stringify({ reference }),
+    body: JSON.stringify({ amount, destinationChain, tokenOut }),
   });
-  return handleResponse<{
-    success: boolean;
-    tier: string;
-    message: string;
-  }>(res);
+  return handleResponse<ChainrailsQuoteResponse>(res);
 }
 
-export async function initializeFlutterwave(email: string): Promise<{
-  authorization_url: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/flutterwave/initialize`,
-    {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    },
-  );
-  return handleResponse<{ authorization_url: string }>(res);
+export interface CreateChainrailsIntentPayload {
+  sender: string;
+  amount: string;
+  amountSymbol?: string;
+  tokenIn: string;
+  sourceChain: string;
+  destinationChain: string;
+  recipient: string;
+  refundAddress: string;
+  metadata?: Record<string, unknown>;
 }
 
-export async function verifyFlutterwave(transactionId: string): Promise<{
-  success: boolean;
-  tier: string;
-  message: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/flutterwave/verify`,
-    {
-      method: "POST",
-      body: JSON.stringify({ transaction_id: transactionId }),
-    },
-  );
-  return handleResponse<{
-    success: boolean;
-    tier: string;
-    message: string;
-  }>(res);
+export async function createChainrailsIntent(
+  payload: CreateChainrailsIntentPayload,
+): Promise<ChainrailsIntent> {
+  const res = await authFetch(`${BASE_URL}/api/v1/payments/chainrails/intent`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<ChainrailsIntent>(res);
+}
+
+// ==================== BETA ====================
+
+export async function markBetaPerkSeen(
+  perkId: string,
+): Promise<{ message: string }> {
+  const res = await authFetch(`${BASE_URL}/api/v1/beta/perks/${perkId}/seen`, {
+    method: "POST",
+  });
+  return handleResponse<{ message: string }>(res);
 }
 
 // ==================== FEEDBACK ====================
 
-export type FeedbackType =
-  | "GENERAL"
-  | "INLINE"
-  | "PAYWALL"
-  | "FEATURE_REQUEST";
+export type FeedbackType = "GENERAL" | "INLINE" | "PAYWALL" | "FEATURE_REQUEST";
 export type FeedbackSentiment = "POSITIVE" | "NEGATIVE";
 
 export interface SubmitFeedbackPayload {

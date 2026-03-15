@@ -6,6 +6,7 @@ import {
   scroll,
   polygon,
   optimism,
+  baseSepolia,
 } from "wagmi/chains";
 import { injected, walletConnect } from "wagmi/connectors";
 
@@ -22,6 +23,7 @@ export const networks = [
   scroll,
   polygon,
   optimism,
+  baseSepolia,
 ] as const;
 
 export const config = createConfig({
@@ -31,6 +33,15 @@ export const config = createConfig({
     walletConnect({
       projectId,
       showQrModal: true,
+      metadata: {
+        name: "EigenWatch",
+        description: "EigenWatch Dashboard",
+        url:
+          typeof window !== "undefined"
+            ? window.location.origin
+            : "https://dashboard.eigenwatch.xyz",
+        icons: ["https://dashboard.eigenwatch.xyz/favicon.png"],
+      },
     }),
   ],
   transports: {
@@ -40,5 +51,6 @@ export const config = createConfig({
     [scroll.id]: http(),
     [polygon.id]: http(),
     [optimism.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });
