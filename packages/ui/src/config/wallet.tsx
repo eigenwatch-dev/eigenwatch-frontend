@@ -1,4 +1,4 @@
-import { createConfig, http } from "wagmi";
+import { http } from "wagmi";
 import {
   mainnet,
   arbitrum,
@@ -8,7 +8,7 @@ import {
   optimism,
   baseSepolia,
 } from "wagmi/chains";
-import { injected, walletConnect } from "wagmi/connectors";
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
 
@@ -26,24 +26,11 @@ export const networks = [
   baseSepolia,
 ] as const;
 
-export const config = createConfig({
+export const config = getDefaultConfig({
+  appName: "EigenWatch",
+  projectId,
   chains: networks,
-  connectors: [
-    injected(),
-    walletConnect({
-      projectId,
-      showQrModal: true,
-      metadata: {
-        name: "EigenWatch",
-        description: "EigenWatch Dashboard",
-        url:
-          typeof window !== "undefined"
-            ? window.location.origin
-            : "https://dashboard.eigenwatch.xyz",
-        icons: ["https://dashboard.eigenwatch.xyz/favicon.png"],
-      },
-    }),
-  ],
+  ssr: true,
   transports: {
     [mainnet.id]: http(),
     [arbitrum.id]: http(),
