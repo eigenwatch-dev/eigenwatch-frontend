@@ -166,8 +166,23 @@ export async function getAdminPayment(id: string) {
 }
 
 // Beta
-export async function getAdminBetaMembers() {
-  return request<BetaMember[]>("/beta/members");
+export async function getAdminBetaMembers(params: {
+  page?: number;
+  limit?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value.toString() !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  return request<{
+    members: BetaMember[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }>(`/beta/members?${searchParams.toString()}`);
 }
 
 export async function addBetaMember(email: string, notes?: string) {
@@ -186,8 +201,23 @@ export async function removeBetaMember(email: string) {
   );
 }
 
-export async function getAdminBetaPerks() {
-  return request<BetaPerk[]>("/beta/perks");
+export async function getAdminBetaPerks(params: {
+  page?: number;
+  limit?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value.toString() !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  return request<{
+    perks: BetaPerk[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }>(`/beta/perks?${searchParams.toString()}`);
 }
 
 export async function updateBetaPerk(

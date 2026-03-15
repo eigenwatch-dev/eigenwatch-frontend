@@ -143,11 +143,21 @@ export default function PaymentsPage() {
                       {payment.user ? (
                         <Link
                           href={`/users/${payment.user.id}`}
-                          className="hover:underline text-sm"
+                          className="hover:underline"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {payment.user.display_name ||
-                            truncateAddress(payment.user.wallet_address)}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {payment.user.display_name ||
+                                truncateAddress(payment.user.wallet_address)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {payment.user.emails?.[0]?.email ||
+                                (payment.user.display_name
+                                  ? truncateAddress(payment.user.wallet_address)
+                                  : "")}
+                            </span>
+                          </div>
                         </Link>
                       ) : (
                         <span className="text-sm text-muted-foreground">—</span>

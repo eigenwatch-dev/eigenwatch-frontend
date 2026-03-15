@@ -15,6 +15,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated, user, openAuthModal, setRestoring } = useAuthStore();
 
+  console.log({ user });
+
   const hasAttemptedRefresh = useRef(false);
   const previousAddress = useRef<string | undefined>(undefined);
 

@@ -36,7 +36,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate } from "@/lib/utils";
-import { Plus, Trash2, FlaskConical, Settings, Database } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  FlaskConical,
+  Settings,
+  Database,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function BetaPage() {
   const queryClient = useQueryClient();
@@ -44,15 +52,29 @@ export default function BetaPage() {
   const [newEmail, setNewEmail] = useState("");
   const [newNotes, setNewNotes] = useState("");
 
-  const { data: members, isLoading: membersLoading } = useQuery<BetaMember[]>({
-    queryKey: ["admin-beta-members"],
-    queryFn: () => getAdminBetaMembers() as Promise<BetaMember[]>,
+  const [membersPage, setMembersPage] = useState(1);
+  const [perksPage, setPerksPage] = useState(1);
+
+  const { data: membersData, isLoading: membersLoading } = useQuery<{
+    members: BetaMember[];
+    total: number;
+    totalPages: number;
+  }>({
+    queryKey: ["admin-beta-members", membersPage],
+    queryFn: () => getAdminBetaMembers({ page: membersPage }) as any,
   });
 
-  const { data: perks, isLoading: perksLoading } = useQuery<BetaPerk[]>({
-    queryKey: ["admin-beta-perks"],
-    queryFn: () => getAdminBetaPerks() as Promise<BetaPerk[]>,
+  const { data: perksData, isLoading: perksLoading } = useQuery<{
+    perks: BetaPerk[];
+    total: number;
+    totalPages: number;
+  }>({
+    queryKey: ["admin-beta-perks", perksPage],
+    queryFn: () => getAdminBetaPerks({ page: perksPage }) as any,
   });
+
+  const members = membersData?.members;
+  const perks = perksData?.perks;
 
   const addMutation = useMutation({
     mutationFn: () => addBetaMember(newEmail, newNotes || undefined),
@@ -104,7 +126,7 @@ export default function BetaPage() {
         <TabsContent value="members" className="mt-4 space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              {members?.length || 0} members
+              {membersData?.total || 0} members
             </p>
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
@@ -208,6 +230,37 @@ export default function BetaPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {membersData && membersData.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Page {membersPage} of {membersData.totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMembersPage((p) => Math.max(1, p - 1))}
+                  disabled={membersPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setMembersPage((p) =>
+                      Math.min(membersData.totalPages, p + 1),
+                    )
+                  }
+                  disabled={membersPage === membersData.totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         {/* Perks Tab */}

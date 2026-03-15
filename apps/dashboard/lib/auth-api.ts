@@ -360,68 +360,6 @@ export async function verifyPayment(txHash: string): Promise<{
   }>(res);
 }
 
-export async function initializePaystack(email: string): Promise<{
-  authorization_url: string;
-  reference: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/paystack/initialize`,
-    {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    },
-  );
-  return handleResponse<{ authorization_url: string; reference: string }>(res);
-}
-
-export async function verifyPaystack(reference: string): Promise<{
-  success: boolean;
-  tier: string;
-  message: string;
-}> {
-  const res = await authFetch(`${BASE_URL}/api/v1/payments/paystack/verify`, {
-    method: "POST",
-    body: JSON.stringify({ reference }),
-  });
-  return handleResponse<{
-    success: boolean;
-    tier: string;
-    message: string;
-  }>(res);
-}
-
-export async function initializeFlutterwave(email: string): Promise<{
-  authorization_url: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/flutterwave/initialize`,
-    {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    },
-  );
-  return handleResponse<{ authorization_url: string }>(res);
-}
-
-export async function verifyFlutterwave(transactionId: string): Promise<{
-  success: boolean;
-  tier: string;
-  message: string;
-}> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/flutterwave/verify`,
-    {
-      method: "POST",
-      body: JSON.stringify({ transaction_id: transactionId }),
-    },
-  );
-  return handleResponse<{
-    success: boolean;
-    tier: string;
-    message: string;
-  }>(res);
-}
-
 // ==================== CHAINRAILS (Cross-Chain Payments) ====================
 
 export interface ChainrailsPaymentOption {
@@ -489,13 +427,10 @@ export interface CreateChainrailsIntentPayload {
 export async function createChainrailsIntent(
   payload: CreateChainrailsIntentPayload,
 ): Promise<ChainrailsIntent> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/chainrails/create-intent`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await authFetch(`${BASE_URL}/api/v1/payments/chainrails/intent`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
   return handleResponse<ChainrailsIntent>(res);
 }
 

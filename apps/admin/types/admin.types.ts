@@ -64,6 +64,7 @@ export interface PaymentTransaction {
     id: string;
     wallet_address: string;
     display_name: string | null;
+    emails?: UserEmail[];
   };
   status_history?: PaymentStatusHistory[];
 }

@@ -33,6 +33,15 @@ export const config = createConfig({
     walletConnect({
       projectId,
       showQrModal: true,
+      metadata: {
+        name: "EigenWatch",
+        description: "EigenWatch Dashboard",
+        url:
+          typeof window !== "undefined"
+            ? window.location.origin
+            : "https://dashboard.eigenwatch.xyz",
+        icons: ["https://dashboard.eigenwatch.xyz/favicon.png"],
+      },
     }),
   ],
   transports: {
