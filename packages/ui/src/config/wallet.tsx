@@ -6,6 +6,7 @@ import {
   scroll,
   polygon,
   optimism,
+  baseSepolia,
 } from "wagmi/chains";
 import { injected, walletConnect } from "wagmi/connectors";
 
@@ -22,6 +23,7 @@ export const networks = [
   scroll,
   polygon,
   optimism,
+  baseSepolia,
 ] as const;
 
 export const config = createConfig({
@@ -40,5 +42,6 @@ export const config = createConfig({
     [scroll.id]: http(),
     [polygon.id]: http(),
     [optimism.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });

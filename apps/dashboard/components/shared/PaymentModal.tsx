@@ -9,7 +9,7 @@ import {
   useWaitForTransactionReceipt,
   useReadContract,
 } from "wagmi";
-import { base } from "wagmi/chains";
+import { base, baseSepolia } from "wagmi/chains";
 import { parseUnits, formatUnits, Address } from "viem";
 import { toast } from "react-toastify";
 import {
@@ -29,7 +29,6 @@ import {
   getChainrailsQuotes,
   createChainrailsIntent,
   getMe,
-  type ChainrailsQuote,
   type ChainrailsIntent,
 } from "@/lib/auth-api";
 import useAuthStore from "@/hooks/store/useAuthStore";
@@ -37,21 +36,41 @@ import { UpgradeAbandonmentFeedback } from "@/components/feedback";
 import { getChainInfo, formatTokenAmount } from "@/lib/chain-utils";
 
 // Configuration
+const IS_TESTNET = process.env.NEXT_PUBLIC_IS_TESTNET === "true";
+const TARGET_CHAIN = IS_TESTNET ? baseSepolia : base;
+const CHAINRAILS_DESTINATION_CHAIN = IS_TESTNET
+  ? "BASE_TESTNET"
+  : "BASE_MAINNET";
+
 const ADMIN_ADDRESS = (process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS ||
   "0x0000000000000000000000000000000000000000") as Address;
 const PRO_PRICE = process.env.NEXT_PUBLIC_PRO_PRICE_USDC || "20";
 
 // Base USDC is the default destination token for Chainrails
-const BASE_USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const BASE_USDC_ADDRESS = IS_TESTNET
+  ? "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+  : "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 const TOKENS = {
-  USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address,
+  USDC: BASE_USDC_ADDRESS as Address,
   USDT: "0xfde4C96c8593536e31f229ea8f37b2ada2699bb2" as Address,
 } as const;
 
 type TokenType = keyof typeof TOKENS;
 type PaymentMethod = "base" | "crosschain";
 type CrossChainStep = "quotes" | "deposit" | "waiting";
+
+export interface FlatChainrailsQuote {
+  sourceChain: string;
+  destinationChain: string;
+  token: string;
+  tokenAddress: string;
+  depositAmount: string;
+  depositAmountFormatted: string;
+  feeFormatted: string;
+  totalFeeFormatted: string;
+  bridge?: string;
+}
 
 const ERC20_ABI = [
   {
@@ -88,15 +107,20 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [showAbandonmentFeedback, setShowAbandonmentFeedback] = useState(false);
 
+  const userBetaDiscount = user?.beta_discount ?? 0;
+  const finalProPriceNumber = userBetaDiscount
+    ? parseFloat(PRO_PRICE) * ((100 - userBetaDiscount) / 100)
+    : parseFloat(PRO_PRICE);
+  const finalProPrice = finalProPriceNumber.toString();
+
   // Cross-chain state
   const [crossChainStep, setCrossChainStep] =
     useState<CrossChainStep>("quotes");
-  const [quotes, setQuotes] = useState<ChainrailsQuote[]>([]);
+  const [quotes, setQuotes] = useState<FlatChainrailsQuote[]>([]);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
   const [quotesError, setQuotesError] = useState<string | null>(null);
-  const [selectedQuote, setSelectedQuote] = useState<ChainrailsQuote | null>(
-    null,
-  );
+  const [selectedQuote, setSelectedQuote] =
+    useState<FlatChainrailsQuote | null>(null);
   const [intent, setIntent] = useState<ChainrailsIntent | null>(null);
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,7 +154,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     abi: ERC20_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
-    chainId: base.id,
+    chainId: TARGET_CHAIN.id,
     query: { enabled: !!address && isOpen },
   });
 
@@ -139,11 +163,11 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     abi: ERC20_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
-    chainId: base.id,
+    chainId: TARGET_CHAIN.id,
     query: { enabled: !!address && isOpen },
   });
 
-  const proPriceUnits = parseUnits(PRO_PRICE, 6);
+  const proPriceUnits = parseUnits(finalProPrice, 6);
 
   useEffect(() => {
     if (usdcBalance !== undefined && usdtBalance !== undefined) {
@@ -188,8 +212,8 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const activeBalance = selectedToken === "USDC" ? usdcBalance : usdtBalance;
 
   const handlePayCrypto = async () => {
-    if (chainId !== base.id) {
-      switchChain({ chainId: base.id });
+    if (chainId !== TARGET_CHAIN.id) {
+      switchChain({ chainId: TARGET_CHAIN.id });
       return;
     }
     const currentBalance = BigInt((activeBalance as any) || 0);
@@ -210,50 +234,112 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const fetchQuotes = useCallback(async () => {
     setIsLoadingQuotes(true);
     setQuotesError(null);
+    console.log(
+      "[PaymentModal:fetchQuotes] Starting to fetch chainrails quotes for PRO_PRICE:",
+      finalProPrice,
+    );
     try {
       const data = await getChainrailsQuotes(
-        PRO_PRICE,
-        "BASE_MAINNET",
+        finalProPrice,
+        CHAINRAILS_DESTINATION_CHAIN,
         BASE_USDC_ADDRESS,
       );
-      // data might be an array or an object with quotes
-      const quotesArray = Array.isArray(data) ? data : [];
-      setQuotes(quotesArray);
-      if (quotesArray.length === 0) {
+      console.log(
+        "[PaymentModal:fetchQuotes] Raw response from getChainrailsQuotes:",
+        data,
+      );
+
+      const flatQuotes: FlatChainrailsQuote[] = [];
+      if (data && data.quotes && Array.isArray(data.quotes)) {
+        data.quotes.forEach((quote) => {
+          if (quote.paymentOptions && Array.isArray(quote.paymentOptions)) {
+            quote.paymentOptions.forEach((opt) => {
+              flatQuotes.push({
+                sourceChain: quote.sourceChain,
+                destinationChain:
+                  quote.destinationChain || data.destinationChain,
+                token: opt.token,
+                tokenAddress: opt.tokenAddress,
+                depositAmount: opt.depositAmount,
+                depositAmountFormatted: opt.depositAmountFormatted,
+                feeFormatted: opt.feeFormatted,
+                totalFeeFormatted: quote.totalFeeFormatted,
+                bridge: quote.bridge,
+              });
+            });
+          }
+        });
+      }
+
+      console.log("[PaymentModal:fetchQuotes] Flat quotes array:", flatQuotes);
+
+      setQuotes(flatQuotes);
+      if (flatQuotes.length === 0) {
+        console.warn("[PaymentModal:fetchQuotes] Quotes array is empty.");
         setQuotesError("No cross-chain routes available at the moment.");
       }
     } catch (err: any) {
+      console.error("[PaymentModal:fetchQuotes] Error fetching quotes:", err);
       setQuotesError(err.message || "Failed to fetch quotes.");
     } finally {
       setIsLoadingQuotes(false);
     }
-  }, []);
+  }, [finalProPrice]);
 
   useEffect(() => {
     if (paymentMethod === "crosschain" && isOpen && emailVerified) {
+      console.log(
+        "[PaymentModal:useEffect] Conditions met to fetch crosschain quotes. Triggering fetchQuotes()...",
+      );
       fetchQuotes();
     }
   }, [paymentMethod, isOpen, emailVerified, fetchQuotes]);
 
-  const handleSelectQuote = async (quote: ChainrailsQuote) => {
-    if (!address) return;
+  const handleSelectQuote = async (quote: FlatChainrailsQuote) => {
+    console.log(
+      "[PaymentModal:handleSelectQuote] Quote selected by user:",
+      quote,
+    );
+    if (!address) {
+      console.warn(
+        "[PaymentModal:handleSelectQuote] Cannot create intent, wallet address is missing.",
+      );
+      return;
+    }
+
     setSelectedQuote(quote);
     setIsCreatingIntent(true);
+
+    const payload = {
+      sender: address,
+      amount: parseUnits(finalProPrice, 6).toString(),
+      amountSymbol: "USDC",
+      tokenIn: quote.tokenAddress,
+      sourceChain: quote.sourceChain,
+      destinationChain: quote.destinationChain,
+      recipient: ADMIN_ADDRESS,
+      refundAddress: address,
+      metadata: { purpose: "pro_upgrade" },
+    };
+
+    console.log(
+      "[PaymentModal:handleSelectQuote] Creating tracking intent with payload:",
+      payload,
+    );
+
     try {
-      const intentData = await createChainrailsIntent({
-        sender: address,
-        amount: PRO_PRICE,
-        amountSymbol: "USDC",
-        tokenIn: quote.tokenIn,
-        sourceChain: quote.source_chain,
-        destinationChain: "BASE_MAINNET",
-        recipient: ADMIN_ADDRESS,
-        refundAddress: address,
-        metadata: { purpose: "pro_upgrade" },
-      });
+      const intentData = await createChainrailsIntent(payload);
+      console.log(
+        "[PaymentModal:handleSelectQuote] Successfully created intent! Response:",
+        intentData,
+      );
       setIntent(intentData);
       setCrossChainStep("deposit");
     } catch (err: any) {
+      console.error(
+        "[PaymentModal:handleSelectQuote] Error creating chainrails intent:",
+        err,
+      );
       toast.error(err.message || "Failed to create payment intent.");
     } finally {
       setIsCreatingIntent(false);
@@ -415,12 +501,24 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Price</span>
-                <span className="text-lg font-bold text-foreground font-mono">
-                  ${PRO_PRICE}{" "}
-                  <span className="text-xs text-muted-foreground font-normal">
-                    USD
+                <div className="flex items-center gap-2">
+                  {userBetaDiscount > 0 && (
+                    <>
+                      <span className="px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider">
+                        -{userBetaDiscount}%
+                      </span>
+                      <span className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
+                        ${PRO_PRICE}
+                      </span>
+                    </>
+                  )}
+                  <span className="text-lg font-bold text-foreground font-mono">
+                    ${finalProPrice}{" "}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      USD
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
               <div className="bg-secondary/50 p-3 rounded text-[11px] text-muted-foreground text-center">
                 Access is one-time and ends automatically after 30 days.
@@ -449,6 +547,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                   error={error}
                   selectedToken={selectedToken}
                   onPay={handlePayCrypto}
+                  finalProPrice={finalProPrice}
                 />
               ) : (
                 <CrossChainFooter
@@ -581,6 +680,7 @@ function BasePaymentFooter({
   error,
   selectedToken,
   onPay,
+  finalProPrice,
 }: {
   chainId: number | undefined;
   switchChain: (args: { chainId: number }) => void;
@@ -591,14 +691,13 @@ function BasePaymentFooter({
   error: Error | null;
   selectedToken: TokenType;
   onPay: () => void;
+  finalProPrice: string;
 }) {
-  const PRO_PRICE_DISPLAY = process.env.NEXT_PUBLIC_PRO_PRICE_USDC || "20";
-
   return (
     <>
-      {chainId !== base.id ? (
+      {chainId !== TARGET_CHAIN.id ? (
         <button
-          onClick={() => switchChain({ chainId: base.id })}
+          onClick={() => switchChain({ chainId: TARGET_CHAIN.id })}
           className="w-full py-3.5 rounded-md bg-transparent border border-blue-500 text-blue-500 hover:bg-blue-500/5 font-bold transition-all text-sm"
         >
           Switch to Base Network
@@ -634,7 +733,7 @@ function BasePaymentFooter({
           onClick={onPay}
           className="w-full py-3.5 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-bold transition-all text-sm"
         >
-          Pay ${PRO_PRICE_DISPLAY} with {selectedToken}
+          Pay ${finalProPrice} with {selectedToken}
         </button>
       )}
 
@@ -666,13 +765,13 @@ function CrossChainContent({
   // onStartPolling,
 }: {
   step: CrossChainStep;
-  quotes: ChainrailsQuote[];
+  quotes: FlatChainrailsQuote[];
   isLoadingQuotes: boolean;
   quotesError: string | null;
-  selectedQuote: ChainrailsQuote | null;
+  selectedQuote: FlatChainrailsQuote | null;
   intent: ChainrailsIntent | null;
   isCreatingIntent: boolean;
-  onSelectQuote: (q: ChainrailsQuote) => void;
+  onSelectQuote: (q: FlatChainrailsQuote) => void;
   onRetryQuotes: () => void;
   onCopy: (text: string) => void;
   onStartPolling: () => void;
@@ -706,10 +805,10 @@ function CrossChainContent({
         {!isLoadingQuotes && !quotesError && quotes.length > 0 && (
           <div className="grid grid-cols-1 gap-2.5">
             {quotes.map((quote, i) => {
-              const chain = getChainInfo(quote.source_chain);
+              const chain = getChainInfo(quote.sourceChain);
               return (
                 <button
-                  key={`${quote.source_chain}-${quote.tokenIn}-${i}`}
+                  key={`${quote.sourceChain}-${quote.tokenAddress}-${i}`}
                   onClick={() => onSelectQuote(quote)}
                   disabled={isCreatingIntent}
                   className="relative flex items-center justify-between p-4 rounded-lg border border-border bg-background hover:border-blue-500/50 hover:bg-secondary transition-all disabled:opacity-50"
@@ -724,17 +823,14 @@ function CrossChainContent({
                     <div className="text-left">
                       <p className="text-sm font-semibold">{chain.name}</p>
                       <p className="text-[10px] text-muted-foreground font-mono">
-                        {quote.asset_token_symbol}
+                        {quote.token}
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <p className="text-sm font-mono font-medium tabular-nums text-foreground">
-                      {formatTokenAmount(
-                        quote.total_amount_in_asset_token,
-                        quote.asset_token_decimals,
-                      )}
+                      {quote.depositAmountFormatted}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
                       Total
@@ -812,13 +908,7 @@ function CrossChainContent({
             <div className="border-t border-border pt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                <span>
-                  Expires:{" "}
-                  {expiresAt.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+                <CountdownTimer expiresAt={expiresAt} />
               </div>
             </div>
           </div>
@@ -888,4 +978,29 @@ function CrossChainFooter({
   }
 
   return null;
+}
+
+function CountdownTimer({ expiresAt }: { expiresAt: Date }) {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const diff = expiresAt.getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft(
+        `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
+      );
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return <span>{timeLeft}</span>;
 }

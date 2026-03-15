@@ -424,15 +424,29 @@ export async function verifyFlutterwave(transactionId: string): Promise<{
 
 // ==================== CHAINRAILS (Cross-Chain Payments) ====================
 
-export interface ChainrailsQuote {
-  source_chain: string;
-  tokenIn: string;
-  fees_in_usd: string;
-  total_amount_in_usd: string;
-  total_amount_in_asset_token: string;
-  asset_token_symbol: string;
-  asset_token_decimals: number;
-  [key: string]: unknown;
+export interface ChainrailsPaymentOption {
+  token: string;
+  tokenAddress: string;
+  depositAmount: string;
+  depositAmountFormatted: string;
+  fee: string;
+  feeFormatted: string;
+  slippage: number;
+}
+
+export interface ChainrailsQuoteRaw {
+  sourceChain: string;
+  destinationChain: string;
+  totalFee: string;
+  totalFeeFormatted: string;
+  bridge?: string;
+  paymentOptions: ChainrailsPaymentOption[];
+}
+
+export interface ChainrailsQuoteResponse {
+  destinationChain: string;
+  quotes: ChainrailsQuoteRaw[];
+  cheapestOption?: ChainrailsQuoteRaw;
 }
 
 export interface ChainrailsIntent {
@@ -452,15 +466,12 @@ export async function getChainrailsQuotes(
   amount: string,
   destinationChain: string,
   tokenOut: string,
-): Promise<ChainrailsQuote[]> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/payments/chainrails/quote`,
-    {
-      method: "POST",
-      body: JSON.stringify({ amount, destinationChain, tokenOut }),
-    },
-  );
-  return handleResponse<ChainrailsQuote[]>(res);
+): Promise<ChainrailsQuoteResponse> {
+  const res = await authFetch(`${BASE_URL}/api/v1/payments/chainrails/quote`, {
+    method: "POST",
+    body: JSON.stringify({ amount, destinationChain, tokenOut }),
+  });
+  return handleResponse<ChainrailsQuoteResponse>(res);
 }
 
 export interface CreateChainrailsIntentPayload {
@@ -493,20 +504,15 @@ export async function createChainrailsIntent(
 export async function markBetaPerkSeen(
   perkId: string,
 ): Promise<{ message: string }> {
-  const res = await authFetch(
-    `${BASE_URL}/api/v1/beta/perks/${perkId}/seen`,
-    { method: "POST" },
-  );
+  const res = await authFetch(`${BASE_URL}/api/v1/beta/perks/${perkId}/seen`, {
+    method: "POST",
+  });
   return handleResponse<{ message: string }>(res);
 }
 
 // ==================== FEEDBACK ====================
 
-export type FeedbackType =
-  | "GENERAL"
-  | "INLINE"
-  | "PAYWALL"
-  | "FEATURE_REQUEST";
+export type FeedbackType = "GENERAL" | "INLINE" | "PAYWALL" | "FEATURE_REQUEST";
 export type FeedbackSentiment = "POSITIVE" | "NEGATIVE";
 
 export interface SubmitFeedbackPayload {

@@ -22,6 +22,7 @@ export interface User {
   created_at: string;
   tier_expires_at?: string;
   beta_member?: boolean;
+  beta_discount?: number | null;
   unseen_beta_perks?: UnseenBetaPerk[];
 }
 
