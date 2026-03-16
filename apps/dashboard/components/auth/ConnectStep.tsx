@@ -17,8 +17,8 @@ const websiteUrl =
   process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
 
 export function ConnectStep() {
-  const { isConnected } = useAccount();
   const { setAuthStep } = useAuthStore();
+  const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
 
   React.useEffect(() => {
