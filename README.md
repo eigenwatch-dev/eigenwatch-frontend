@@ -10,7 +10,7 @@ This repository is organized as a monorepo with the following structure:
 
 - **`apps/dashboard`**: The main dashboard application for EigenWatch.
 - **`apps/web`**: The public-facing web application.
-- **`apps/docs`**: The documentation site.
+- **`apps/admin`**: The admin site.
 
 ### Packages
 
